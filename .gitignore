@@ -1,0 +1,25 @@
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# PyCharm
+.idea/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Node.js and React
+node_modules/
+dist/
+coverage/
+
+# System files
+.DS_Store
+Thumbs.db
