@@ -1,9 +1,9 @@
 ﻿import { useState } from 'react'
 
 const dailyReports = [
-  { date: '2026-11-01', patients: 3, completed: 5, payments: 1200 },
-  { date: '2026-11-10', patients: 4, completed: 6, payments: 1500 },
-  { date: '2026-11-20', patients: 5, completed: 7, payments: 1800 },
+  { date: '2026-11-01', patients: 3, completed: 5, cancelled: 1, scheduled: 2, payments: 1200 },
+  { date: '2026-11-10', patients: 4, completed: 6, cancelled: 0, scheduled: 3, payments: 1500 },
+  { date: '2026-11-20', patients: 5, completed: 7, cancelled: 2, scheduled: 1, payments: 1800 },
 ]
 
 export default function App() {
@@ -45,6 +45,10 @@ export default function App() {
           <dd>{patients}</dd>
           <dt>Completed appointments</dt>
           <dd>{completed}</dd>
+          <dt>Cancelled appointments</dt>
+          <dd>{selectedDays.reduce((sum, day) => sum + day.cancelled, 0)}</dd>
+          <dt>Scheduled appointments</dt>
+          <dd>{selectedDays.reduce((sum, day) => sum + day.scheduled, 0)}</dd>
           <dt>Payments received</dt>
           <dd>EGP {payments.toLocaleString('en-US')}</dd>
         </dl>
@@ -82,4 +86,5 @@ export default function App() {
     </main>
   )
 }
+
 
