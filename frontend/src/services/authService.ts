@@ -1,5 +1,9 @@
 
-import { api } from './api'
+import {
+  api,
+  renewAccessToken,
+  setAccessToken,
+} from './api'
 
 export interface CurrentUser {
   id: number
@@ -21,22 +25,29 @@ export interface PatientRegistration {
   phone?: string | null
 }
 
+interface AuthResult {
+  token: string
+  user: CurrentUser
+}
+
+// Register a new patient account
 export async function registerPatient(
   data: PatientRegistration
 ): Promise<void> {
   await api.post('/auth/register', data)
 }
 
+// Login using OAuth2 form fields
 export async function loginUser(
   email: string,
   password: string
-): Promise<{ token: string; user: CurrentUser }> {
-  // FastAPI OAuth2 expects form-encoded fields
+): Promise<AuthResult> {
   const form = new URLSearchParams()
+
   form.set('username', email)
   form.set('password', password)
 
-  const loginResponse = await api.post<TokenResponse>(
+  const response = await api.post<TokenResponse>(
     '/auth/login',
     form,
     {
@@ -46,20 +57,54 @@ export async function loginUser(
     }
   )
 
-  const token = loginResponse.data.access_token
+  const token = response.data.access_token
+  setAccessToken(token)
 
-  // Retrieve the account associated with the JWT
-  const userResponse = await api.get<CurrentUser>(
-    '/auth/me',
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  try {
+    const userResponse = await api.get<CurrentUser>(
+      '/auth/me'
+    )
+
+    return {
+      token,
+      user: userResponse.data,
     }
-  )
-
-  return {
-    token,
-    user: userResponse.data,
+  } catch (error) {
+    setAccessToken(null)
+    throw error
   }
+}
+
+// Reuse one session-restoration operation
+let restorePromise: Promise<AuthResult> | null = null
+
+export function restoreSession(): Promise<AuthResult> {
+  if (!restorePromise) {
+    restorePromise = (async () => {
+      const token = await renewAccessToken()
+
+      const userResponse = await api.get<CurrentUser>(
+        '/auth/me'
+      )
+
+      return {
+        token,
+        user: userResponse.data,
+      }
+    })()
+      .catch((error) => {
+        setAccessToken(null)
+        throw error
+      })
+      .finally(() => {
+        restorePromise = null
+      })
+  }
+
+  return restorePromise
+}
+
+// Revoke the server-side session
+export async function logoutUser(): Promise<void> {
+  await api.post('/auth/logout')
 }
