@@ -1,14 +1,42 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 
-const dailyReports = [
-  { date: '2026-11-01', patients: 3, completed: 5, cancelled: 1, scheduled: 2, payments: 1200 },
-  { date: '2026-11-10', patients: 4, completed: 6, cancelled: 0, scheduled: 3, payments: 1500 },
-  { date: '2026-11-20', patients: 5, completed: 7, cancelled: 2, scheduled: 1, payments: 1800 },
-]
+type DailyReport = {
+  date: string
+  patients: number
+  completed: number
+  cancelled: number
+  scheduled: number
+  payments: number
+}
 
 export default function ReportsPage() {
   const [from, setFrom] = useState('2026-11-01')
   const [to, setTo] = useState('2026-11-30')
+  const [dailyReports, setDailyReports] = useState<DailyReport[] | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadReports() {
+      try {
+        const response = await fetch('/api/reports/daily', {
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error('Reports request failed')
+        const reports: DailyReport[] = await response.json()
+        if (!controller.signal.aborted) setDailyReports(reports)
+      } catch {
+        if (!controller.signal.aborted) setFailed(true)
+      }
+    }
+
+    void loadReports()
+    return () => controller.abort()
+  }, [])
+
+  if (failed) return <p role="alert">Could not load reports. Check the API and refresh.</p>
+  if (dailyReports === null) return <p role="status">Loading reports...</p>
   const invalidRange = Boolean(from && to && from > to)
 
   const selectedDays = dailyReports.filter(
@@ -86,6 +114,7 @@ export default function ReportsPage() {
     </main>
   )
 }
+
 
 
 
