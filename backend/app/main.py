@@ -9,8 +9,8 @@ import app.models
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    description="Backend API for DentaCare EMR System - Dental Records & Treatment Planning",
+    title="Dental Clinical Management System",
+    description="Backend API for Dental Clinical Management System - Dental Records & Treatment Planning",
     version="1.0.0"
 )
 

@@ -1,12 +1,17 @@
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 
+# Absolute directory of the backend folder
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+DEFAULT_DB_PATH = BACKEND_DIR / "dentacare.db"
+
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "DentaCare EMR System"
+    PROJECT_NAME: str = "Dental Clinical Management System"
     API_V1_STR: str = "/api/v1"
     
-    # Default to SQLite if no PostgreSQL URL is set, for instant plug-and-play testing
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./dentacare.db")
+    # Always resolve to the backend/dentacare.db absolute path
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH.as_posix()}")
 
     class Config:
         case_sensitive = True

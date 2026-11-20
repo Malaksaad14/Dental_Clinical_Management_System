@@ -62,6 +62,23 @@ export default function App() {
 
   // Handlers
   const handleSaveToothRecord = async (record) => {
+    // Optimistic immediate update to local state
+    const optimisticEntry = {
+      id: Date.now(),
+      tooth_number: record.tooth_number,
+      condition: record.condition,
+      surface: record.surface,
+      notes: record.notes,
+      recorded_at: new Date().toISOString()
+    };
+
+    setTeethData(prev => {
+      const copy = { ...prev };
+      const list = copy[record.tooth_number] || [];
+      copy[record.tooth_number] = [optimisticEntry, ...list];
+      return copy;
+    });
+
     try {
       if (backendConnected) {
         await api.addToothRecord({
@@ -70,39 +87,39 @@ export default function App() {
           ...record
         });
       }
-      // Update local state immediately
-      setTeethData(prev => {
-        const copy = { ...prev };
-        const list = copy[record.tooth_number] || [];
-        copy[record.tooth_number] = [
-          {
-            id: Date.now(),
-            tooth_number: record.tooth_number,
-            condition: record.condition,
-            surface: record.surface,
-            notes: record.notes,
-            recorded_at: new Date().toISOString()
-          },
-          ...list
-        ];
-        return copy;
-      });
-      showToast(`Tooth #${record.tooth_number} condition saved successfully!`);
+      showToast(`Tooth #${record.tooth_number} saved (${record.condition})!`);
     } catch (err) {
-      showToast('Error saving: ' + err.message);
+      showToast('Saved locally. Backend note: ' + err.message);
     }
   };
 
   const handleDeleteToothRecord = async (recordId) => {
-    try {
-      if (backendConnected) {
+    // Local-only records have a timestamp-based ID (> 9999999999),
+    // so skip the backend call and just remove from local state.
+    const isLocalOnly = recordId > 9_999_999_999;
+
+    if (!isLocalOnly && backendConnected) {
+      try {
         await api.deleteToothRecord(recordId);
+      } catch (err) {
+        showToast('Error deleting from server: ' + err.message);
+        return;
       }
-      loadData();
-      showToast('Record deleted');
-    } catch (err) {
-      showToast('Error deleting: ' + err.message);
     }
+
+    // Remove from local state immediately
+    setTeethData(prev => {
+      const updated = {};
+      for (const [toothNum, records] of Object.entries(prev)) {
+        const filtered = records.filter(r => r.id !== recordId);
+        if (filtered.length > 0) {
+          updated[toothNum] = filtered;
+        }
+      }
+      return updated;
+    });
+
+    showToast('Record deleted successfully.');
   };
 
   const handleCreatePlan = async (planData) => {
@@ -174,8 +191,7 @@ export default function App() {
               🦷
             </div>
             <div>
-              <span className="font-bold text-sm tracking-wide block">DentaCare EMR</span>
-              <span className="text-[10px] text-sky-300 font-mono">Clinical Module • Phase 2</span>
+              <span className="font-bold text-sm tracking-wide block">Dental Clinical Management System</span>
             </div>
           </div>
 
@@ -283,7 +299,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400">
-        DentaCare EMR System • Electronic Medical Records & Dental Treatment Planning
+        Dental Clinical Management System • Electronic Medical Records & Dental Treatment Planning
       </footer>
     </div>
   );

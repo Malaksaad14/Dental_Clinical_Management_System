@@ -14,7 +14,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(recordData),
     });
-    if (!res.ok) throw new Error('Failed to record tooth condition');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Failed to record tooth condition (${res.status})`);
+    }
     return res.json();
   },
 
