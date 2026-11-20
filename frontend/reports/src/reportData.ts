@@ -1,4 +1,10 @@
-﻿type AppointmentDay = {
+﻿type PaymentDay = {
+  date: string
+  payment_count: number
+  total_received: string
+}
+
+type AppointmentDay = {
   date: string
   completed: number
   cancelled: number
@@ -6,10 +12,9 @@
   no_show: number
 }
 
-type SampleDay = {
+type PatientDay = {
   date: string
   patients: number
-  payments: number
 }
 
 async function readReport<T>(url: string, signal: AbortSignal): Promise<T> {
@@ -21,6 +26,9 @@ async function readReport<T>(url: string, signal: AbortSignal): Promise<T> {
 export function loadReportData(signal: AbortSignal) {
   return Promise.all([
     readReport<AppointmentDay[]>('/api/reports/appointments', signal),
-    readReport<SampleDay[]>('/api/reports/daily', signal),
+    readReport<PatientDay[]>('/api/reports/patients', signal),
+    readReport<PaymentDay[]>('/api/reports/payments', signal),
   ])
 }
+
+

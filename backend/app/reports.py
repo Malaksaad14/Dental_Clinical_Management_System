@@ -1,4 +1,6 @@
-﻿from .appointment_reports import router as appointment_router
+﻿from .patient_reports import router as patient_router
+from .payment_reports import router as payment_router
+from .appointment_reports import router as appointment_router
 from datetime import date
 
 from fastapi import APIRouter, FastAPI
@@ -34,4 +36,10 @@ app = FastAPI(title="DentaCare Reports")
 app.include_router(router)
 
 app.include_router(appointment_router)
+
+
+app.include_router(payment_router)
+
+
+app.include_router(patient_router)
 

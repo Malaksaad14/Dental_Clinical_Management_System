@@ -28,7 +28,15 @@ export default function ReportsPage() {
     (!from || day.date >= from) && (!to || day.date <= to)
 
   const appointments = data[0].filter(inPeriod)
-  const samples = data[1].filter(inPeriod)
+  const patientDays = data[1].filter(inPeriod)
+  const paymentDays = data[2].filter(inPeriod)
+  const totalPiastres = paymentDays.reduce(
+    (sum, day) => sum + Math.round(Number(day.total_received) * 100), 0
+  )
+  const formattedPayments = (totalPiastres / 100).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
   const maxCompleted = appointments.reduce((max, day) => Math.max(max, day.completed), 1)
 
   return (
@@ -72,15 +80,17 @@ export default function ReportsPage() {
           ))}
 
           <h2>Patients and payments</h2>
-          <p>Sample data for November 2026</p>
+          <p>Source: local PostgreSQL demo database</p>
           <dl>
             <dt>New patients</dt>
-            <dd>{samples.reduce((sum, day) => sum + day.patients, 0)}</dd>
+            <dd>{patientDays.reduce((sum, day) => sum + day.patients, 0)}</dd>
             <dt>Payments received</dt>
-            <dd>EGP {samples.reduce((sum, day) => sum + day.payments, 0).toLocaleString('en-US')}</dd>
+            <dd>EGP {formattedPayments}</dd>
           </dl>
         </>
       )}
     </main>
   )
 }
+
+
