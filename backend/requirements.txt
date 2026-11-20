@@ -6,3 +6,4 @@ python-dotenv
 alembic
 pwdlib[bcrypt]
 email-validator
+PyJWT>=2.10,<3.0

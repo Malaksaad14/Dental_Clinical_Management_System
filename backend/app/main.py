@@ -4,7 +4,7 @@ from app.routers.auth import router as auth_router
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-
+from app.routers.patients import router as patients_router
 from app.db.database import engine
 
 
@@ -15,7 +15,7 @@ app = FastAPI(
     description="Dental Clinic Management System",
     version="1.0.0",
 )
-
+app.include_router(patients_router)
 app.include_router(auth_router)
 @app.get("/")
 def root():

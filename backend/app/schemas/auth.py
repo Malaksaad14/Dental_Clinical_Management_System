@@ -47,3 +47,15 @@ class PatientRegisterResponse(BaseModel):
     patient_id: int
     email: EmailStr
     role: Literal["patient"]
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class CurrentUserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    role: Literal["admin", "clinical_staff", "patient"]
+    is_active: bool

@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
+from app.core.security import verify_password
 from app.models.user import User
 from app.models.patient import Patient
 from app.schemas.auth import (
@@ -99,3 +100,32 @@ def register_patient(
         email=new_user.email,
         role="patient",
     )
+
+def authenticate_user(
+    db: Session,
+    email: str,
+    password: str,
+) -> User | None:
+    """Authenticate a user using email and password."""
+
+    normalized_email = email.strip().lower()
+
+    user = db.scalar(
+        select(User).where(
+            User.email == normalized_email
+        )
+    )
+
+    if user is None:
+        return None
+
+    if not verify_password(
+        password,
+        user.password_hash,
+    ):
+        return None
+
+    if not user.is_active:
+        return None
+
+    return user
