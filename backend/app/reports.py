@@ -1,4 +1,5 @@
-﻿from datetime import date
+﻿from .appointment_reports import router as appointment_router
+from datetime import date
 
 from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
@@ -31,3 +32,6 @@ def get_daily_reports() -> list[DailyReport]:
 
 app = FastAPI(title="DentaCare Reports")
 app.include_router(router)
+
+app.include_router(appointment_router)
+
