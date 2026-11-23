@@ -1,0 +1,145 @@
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card, .profile-card, .dashboard-card {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 3px 16px #142d4412;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+}
+
+.auth-card h1 {
+  color: #0874b8;
+}
+
+.auth-card form,
+.profile-card form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-card label,
+.profile-card label {
+  display: block;
+  margin: 15px 0 6px;
+  font-weight: 600;
+}
+
+.auth-card input,
+.profile-card input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c8d4df;
+  border-radius: 7px;
+}
+
+.auth-card button,
+.profile-card button,
+.sidebar button {
+  margin-top: 20px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 7px;
+  background: #0874b8;
+  color: white;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #b42318;
+}
+
+.success {
+  color: #067647;
+}
+
+.portal {
+  min-height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 245px;
+  flex-shrink: 0;
+  background: #123653;
+  color: white;
+  padding: 24px 18px;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 26px 0;
+}
+
+.sidebar nav a {
+  color: white;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 7px;
+}
+
+.sidebar nav a.active,
+.sidebar nav a:hover {
+  background: #275978;
+}
+
+.portal-content {
+  flex: 1;
+  min-width: 0;
+  padding: 28px;
+}
+
+.portal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #dce4ec;
+  margin-bottom: 24px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.profile-card {
+  max-width: 620px;
+}
+
+@media (max-width: 700px) {
+  .portal {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .portal-content {
+    padding: 18px;
+  }
+
+  .portal-header {
+    flex-direction: column;
+  }
+}

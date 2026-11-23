@@ -1,20 +1,29 @@
-from app.core.database import Base
-from app.models.base_entities import User, Patient, Staff, Service, ICD10Code
-from app.models.dental import ToothRecord, ClinicalNote
+from app.models.user import User
+from app.models.patient import Patient
+from app.models.staff import Staff
+from app.models.auth_session import AuthSession
+from app.models.clinic import Appointment, Chair, DentistAvailability, Service
+from app.models.history import MedicalHistory, ToothRecord
 from app.models.treatment_plan import TreatmentPlan, TreatmentPlanItem
 from app.models.prescription import Prescription, PrescriptionItem
+from app.models.dental import ClinicalNote
+from app.models.base_entities import ICD10Code
 
 __all__ = [
-    "Base",
     "User",
     "Patient",
     "Staff",
+    "AuthSession",
+    "Appointment",
+    "Chair",
+    "DentistAvailability",
     "Service",
-    "ICD10Code",
+    "MedicalHistory",
     "ToothRecord",
-    "ClinicalNote",
     "TreatmentPlan",
     "TreatmentPlanItem",
     "Prescription",
-    "PrescriptionItem"
+    "PrescriptionItem",
+    "ClinicalNote",
+    "ICD10Code"
 ]
