@@ -203,3 +203,39 @@ class ToothOut(ToothIn):
     patient_id: int
     recorded_by: int
     recorded_at: datetime
+
+
+class WeeklyAvailabilityDay(BaseModel):
+    """One weekly time interval on a single weekday (Monday=0)."""
+    day_of_week: int = Field(ge=0, le=6)
+    start_time: time
+    end_time: time
+
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def clock_time_only(cls, value: time) -> time:
+        if value.tzinfo is not None:
+            raise ValueError("Working hours must use local clinic time without an offset")
+        return value
+
+    @field_validator("end_time")
+    @classmethod
+    def validate_end(cls, value: time, info):
+        start = info.data.get("start_time")
+        if start is not None and value <= start:
+            raise ValueError("End time must be after start time")
+        return value
+
+
+class WeeklyAvailabilityIn(BaseModel):
+    """Replace a dentist's weekly timetable with one entry per chosen day."""
+    dentist_id: int = Field(gt=0)
+    days: list[WeeklyAvailabilityDay] = Field(min_length=1, max_length=7)
+
+    @field_validator("days")
+    @classmethod
+    def one_interval_per_day(cls, days: list[WeeklyAvailabilityDay]) -> list[WeeklyAvailabilityDay]:
+        weekdays = [day.day_of_week for day in days]
+        if len(weekdays) != len(set(weekdays)):
+            raise ValueError("Each weekday can only appear once")
+        return days
