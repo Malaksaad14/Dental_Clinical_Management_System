@@ -1,16 +1,33 @@
-.schedule-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 18px; margin-top: 20px; }
-.schedule-heading .section-heading { margin-bottom: 8px; }
-.schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 14px; margin: 14px 0 26px; }
-.schedule-card { background: #f9fcfe; border: 1px solid #dce9f0; border-radius: 12px; padding: 17px; }
-.schedule-card h3 { color: #123d58; margin: 0 0 12px; }
-.doctor-hours th, .doctor-hours td { text-align: left; padding: 9px 8px; font-size: 13px; }
-.doctor-hours th { background: #eaf3f7; }
-.schedule-dentist-select { max-width: 440px; margin-bottom: 17px; }
-.weekly-editor { display: grid; gap: 10px; margin-bottom: 15px; }
-.weekly-day { display: grid; grid-template-columns: minmax(140px, 1.2fr) repeat(2, minmax(130px, 1fr)); align-items: center; gap: 15px; background: #f6fafc; border: 1px solid #e2edf3; border-radius: 10px; padding: 13px; }
-.weekly-checkbox { display: flex; flex-direction: row; align-items: center; gap: 10px; cursor: pointer; }
-.weekly-checkbox input { width: 18px; height: 18px; flex-shrink: 0; }
-.weekly-day input:disabled { background: #e8eef2; opacity: .7; cursor: not-allowed; }
-.schedule-selection-note { background: #f0f8fa; border-left: 4px solid #0688a1; border-radius: 8px; padding: 12px 14px; }
-.schedule-selection-note p { margin: 6px 0 0; }
-@media(max-width: 660px) { .weekly-day { grid-template-columns: 1fr 1fr; } .weekly-checkbox { grid-column: 1 / -1; } }
+.doctor-schedules { margin: 28px 0 6px; }
+.schedule-heading { display: flex; justify-content: space-between; gap: 16px; align-items: flex-end; margin: 4px 0 20px; }
+.schedule-heading .section-heading { margin: 5px 0 3px; }
+.schedule-heading .hint { margin: 2px 0 0; }
+.schedule-timezone { display:flex; gap:8px; align-items:center; flex-shrink:0; font-size:12px; font-weight:700; color:#537082; border-radius:20px; background:#f0f7f8; border:1px solid #deedef; padding:9px 13px; }
+.schedule-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(265px,1fr)); gap:16px; margin:14px 0 28px; }
+.schedule-card { min-width:0; border-radius:17px; padding:20px; background:#fff; border:1px solid #e3ecf0; box-shadow:0 5px 18px rgba(23,59,74,.035); transition:box-shadow .2s ease,transform .2s ease,border-color .2s ease; }
+.schedule-card:hover { transform:translateY(-2px); border-color:#cde9e7; box-shadow:0 12px 30px rgba(23,59,74,.08); }
+.schedule-card-header { display:flex; gap:12px; align-items:center; }
+.doctor-avatar { display:grid; place-items:center; width:48px; height:48px; flex-shrink:0; border-radius:15px; font-size:16px; color:#087c78; background:#dff5f2; font-weight:800; letter-spacing:-.04em; }
+.doctor-header-info { min-width:0; }
+.doctor-header-info h3 { margin:0 0 4px; font-size:15px; color:#183546; font-weight:750; white-space:normal; }
+.doctor-header-info span { display:block; font-size:12px; color:#84929e; }
+.doctor-card-meta { display:flex; align-items:center; gap:7px; color:#2b8b8b; margin:17px 0 10px; font-size:12px; font-weight:750; }
+.doctor-hours-list { display:grid; gap:1px; }
+.doctor-hour-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 0; border-top:1px solid #edf2f4; font-size:12px; }
+.day-badge { display:inline-flex; min-width:88px; color:#52697a; font-weight:680; }
+.time-range { color:#2b3f4e; font-weight:750; text-align:right; white-space:nowrap; font-size:12px; }
+.time-dash { color:#aab9c4; padding:0 2px; }
+.schedule-no-hours { background:#f6f9fa; padding:14px; border-radius:11px; color:#778b96; font-size:13px; margin:13px 0 0; }
+.schedule-empty { display:flex; align-items:center; gap:12px; background:#f6f9fa; padding:22px; border-radius:14px; color:#708393; }
+.schedule-empty p { margin:0; }
+.schedule-dentist-select { max-width:440px; margin-bottom:17px; }
+.weekly-editor { display:grid; gap:11px; margin-bottom:16px; }
+.weekly-day { display:grid; grid-template-columns:minmax(160px,1.1fr) repeat(2,minmax(135px,1fr)); align-items:center; gap:15px; border:1px solid #e4ecef; border-radius:12px; background:#fafcfd; padding:14px 16px; transition:background .18s,border-color .18s; }
+.weekly-day:has(input[type='checkbox']:checked) { border-color:#abdeda; background:#f2fbf9; }
+.weekly-checkbox { display:flex; flex-direction:row; align-items:center; gap:11px; cursor:pointer; font-weight:750; }
+.weekly-checkbox input { width:18px; height:18px; flex-shrink:0; accent-color:#0b9389; }
+.weekly-day input:disabled { background:#f0f3f5; opacity:.75; cursor:not-allowed; }
+.schedule-selection-note { background:#ecfaf7; border:1px solid #ccece5; border-radius:12px; padding:14px 17px; color:#27514f; }
+.schedule-selection-note p { margin:6px 0 0; }
+@media(max-width:750px){.schedule-heading{align-items:flex-start;flex-direction:column}.schedule-grid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}}
+@media(max-width:550px){.weekly-day{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.weekly-checkbox{grid-column:1/-1}.doctor-hour-row{gap:6px}}
