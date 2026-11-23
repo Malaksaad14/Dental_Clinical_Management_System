@@ -1,89 +1,57 @@
-
+from datetime import datetime, timezone
 from typing import Annotated, Callable
 
-import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 
-from app.core.security import (
-    JWT_ALGORITHM,
-    JWT_SECRET_KEY,
-)
+from app.core.security import decode_token
 from app.db.database import get_db
-from app.models.user import User
+from app.models import AuthSession, Staff, User
+
+bearer_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="auth/login"
-)
+def unauthorized() -> HTTPException:
+    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired session", headers={"WWW-Authenticate": "Bearer"})
 
 
-def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[Session, Depends(get_db)],
-) -> User:
-    """Validate the token and load the active user."""
-
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired authentication token",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
+def current_user(token: Annotated[str, Depends(bearer_scheme)], db: Annotated[Session, Depends(get_db)]) -> User:
     try:
-        payload = jwt.decode(
-            token,
-            JWT_SECRET_KEY,
-            algorithms=[JWT_ALGORITHM],
-            options={
-                "require": ["sub", "exp", "iat"]
-            },
-        )
-
-        if payload.get("type") != "access":
-            raise credentials_exception
-
-        subject = payload.get("sub")
-
-        if (
-            not isinstance(subject, str)
-            or not subject.isdecimal()
-        ):
-            raise credentials_exception
-
-        user_id = int(subject)
-
-    except InvalidTokenError:
-        raise credentials_exception
-
+        user_id, sid = decode_token(token, "access")
+    except ValueError:
+        raise unauthorized() from None
     user = db.get(User, user_id)
-
-    if user is None or not user.is_active:
-        raise credentials_exception
-
+    session = db.get(AuthSession, sid)
+    if (
+        not user or not user.is_active or not session
+        or session.user_id != user_id or session.revoked_at is not None
+        or (session.expires_at.replace(tzinfo=timezone.utc) if session.expires_at.tzinfo is None else session.expires_at) <= datetime.now(timezone.utc)
+    ):
+        raise unauthorized()
     return user
 
 
-def require_roles(
-    *allowed_roles: str,
-) -> Callable:
-    """Allow access only to specified user roles."""
+def allow_roles(*roles: str) -> Callable:
+    def guard(user: Annotated[User, Depends(current_user)]) -> User:
+        if user.role not in roles and user.role != "admin":
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        return user
+    return guard
 
-    def check_role(
-        current_user: Annotated[
-            User,
-            Depends(get_current_user),
-        ],
-    ) -> User:
 
-        if current_user.role not in allowed_roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission",
-            )
+def clinical_access(user: Annotated[User, Depends(current_user)], db: Annotated[Session, Depends(get_db)]) -> User:
+    if user.role == "admin":
+        return user
+    staff = db.query(Staff).filter(Staff.user_id == user.id).first()
+    if user.role != "clinical_staff" or not staff or staff.staff_type == "receptionist":
+        raise HTTPException(status_code=403, detail="Clinical access required")
+    return user
 
-        return current_user
 
-    return check_role
+def own_patient_id(db: Session, user: User) -> int:
+    from app.models import Patient
+    patient = db.query(Patient).filter(Patient.user_id == user.id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient profile not found")
+    return patient.id

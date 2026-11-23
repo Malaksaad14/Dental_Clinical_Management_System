@@ -1,66 +1,36 @@
-
 import logging
-from app.routers.auth import router as auth_router
-from fastapi import FastAPI, HTTPException
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from app.routers.patients import router as patients_router
-from app.db.database import engine
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
-logger = logging.getLogger(__name__)
+from app.db.database import engine
+from app.routers import appointments, auth, catalog, history, patients, staff
 
-app = FastAPI(
-    title="DentaCare EMR API",
-    description="Dental Clinic Management System",
-    version="1.0.0",
-)
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-# Allow the React development server to access FastAPI
+app = FastAPI(title="DentaCare EMR API", version="2.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_origins=[os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
-app.include_router(patients_router)
-app.include_router(auth_router)
-@app.get("/")
-def root():
-    return {
-        "message": "Welcome to DentaCare EMR API"
-    }
+app.include_router(auth.router)
+app.include_router(patients.router)
+app.include_router(staff.router)
+app.include_router(catalog.router)
+app.include_router(appointments.router)
+app.include_router(history.router)
 
 
 @app.get("/health")
-def health_check():
-    return {
-        "status": "success",
-        "message": "Backend is running"
-    }
-
-
-# Development-only database connection test
-@app.get("/db-health", include_in_schema=True)
-def database_health_check():
-    try:
-        with engine.connect() as connection:
-            result = connection.execute(text("SELECT 1"))
-            result.scalar_one()
-
-        return {
-            "status": "success",
-            "message": "Database connected successfully"
-        }
-
-    except SQLAlchemyError:
-        logger.exception("Database connection failed")
-        raise HTTPException(
-            status_code=503,
-            detail="Database connection unavailable"
-        )
+def health():
+    with engine.connect() as con:
+        con.execute(text("SELECT 1"))
+    return {"status": "ok"}
