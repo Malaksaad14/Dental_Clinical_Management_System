@@ -7,6 +7,8 @@ export interface User {
   role: Role
   is_active: boolean
   staff_type: StaffType | null
+  first_name: string | null
+  last_name: string | null
 }
 
 export interface Patient {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pill, Plus, Calendar, Clock, UserCheck, Trash2 } from 'lucide-react';
+import { Pill, Plus, Calendar, Clock, UserCheck, Trash2, Edit2, X } from 'lucide-react';
 
 const COMMON_DRUGS = [
   { name: 'Amoxicillin 500mg', dosage: '1 capsule', freq: 'Every 8 hours', dur: '5-7 days' },
@@ -10,8 +10,10 @@ const COMMON_DRUGS = [
   { name: 'Flagyl 500mg (Metronidazole)', dosage: '1 tablet', freq: 'Every 8 hours with meals', dur: '5 days' }
 ];
 
-export default function PrescriptionsList({ prescriptions = [], onCreatePrescription }) {
+export default function PrescriptionsList({ prescriptions = [], onCreatePrescription, onDeletePrescription, onUpdatePrescription, readOnly = false }) {
   const [showModal, setShowModal] = useState(false);
+  const [editingRx, setEditingRx] = useState(null);
+  const [editNotes, setEditNotes] = useState('');
   const [notes, setNotes] = useState('');
   const [meds, setMeds] = useState([
     { drug_name: 'Amoxicillin 500mg', dosage: '1 capsule', frequency: 'Every 8 hours', duration: '5 days' }
@@ -54,6 +56,26 @@ export default function PrescriptionsList({ prescriptions = [], onCreatePrescrip
     }
   };
 
+  const handleOpenEdit = (rx) => {
+    setEditingRx(rx);
+    setEditNotes(rx.notes || '');
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      if (onUpdatePrescription) {
+        await onUpdatePrescription(editingRx.id, { notes: editNotes });
+      }
+      setEditingRx(null);
+    } catch (err) {
+      alert('Error updating prescription: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
       <div className="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -62,18 +84,17 @@ export default function PrescriptionsList({ prescriptions = [], onCreatePrescrip
             <Pill className="w-5 h-5 text-sky-600" />
             <span>Prescriptions & Medications</span>
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Issue electronic dental prescriptions with dosage instructions and tracking.
-          </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm shadow-sky-600/30"
-        >
-          <Plus className="w-4 h-4" />
-          Write Prescription
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm shadow-sky-600/30"
+          >
+            <Plus className="w-4 h-4" />
+            Write Prescription
+          </button>
+        )}
       </div>
 
       {/* Prescriptions List */}
@@ -89,15 +110,37 @@ export default function PrescriptionsList({ prescriptions = [], onCreatePrescrip
             <div key={rx.id} className="border border-slate-200 rounded-2xl p-5 hover:border-sky-200 bg-slate-50/40 transition-all">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/60">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-800 text-xs">Rx #{rx.id}</span>
+                  <span className="font-bold text-slate-800 text-xs">Prescription #{rx.id}</span>
                   <span className="text-[10px] bg-sky-100 text-sky-700 font-semibold px-2 py-0.5 rounded-full">
                     Dental Prescription
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {new Date(rx.issued_at).toLocaleDateString()}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {new Date(rx.issued_at).toLocaleDateString()}
+                  </span>
+                  {!readOnly && (
+                    <div className="flex items-center gap-1 border-l border-slate-200 pl-2 ml-1">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(rx)}
+                        title="Edit prescription notes"
+                        className="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeletePrescription && onDeletePrescription(rx.id)}
+                        title="Delete prescription"
+                        className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {rx.notes && (
@@ -245,6 +288,53 @@ export default function PrescriptionsList({ prescriptions = [], onCreatePrescrip
                   className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-sm"
                 >
                   {submitting ? 'Issuing...' : 'Issue Prescription'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Prescription Modal */}
+      {editingRx && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="font-bold text-slate-800 text-sm">Edit Prescription #{editingRx.id} Notes</h3>
+              <button
+                type="button"
+                onClick={() => setEditingRx(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Doctor Instructions & Notes</label>
+                <textarea
+                  rows="3"
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingRx(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-sm"
+                >
+                  {submitting ? 'Saving...' : 'Save Notes'}
                 </button>
               </div>
             </form>

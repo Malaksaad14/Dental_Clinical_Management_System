@@ -99,6 +99,8 @@ class UserOut(BaseModel):
     role: Literal["admin", "clinical_staff", "patient"]
     is_active: bool
     staff_type: STAFF_TYPES | None = None
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 class TokenOut(BaseModel):

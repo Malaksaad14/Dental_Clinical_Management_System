@@ -55,6 +55,35 @@ def logout(request: Request, response: Response, db: Annotated[Session, Depends(
 
 @router.get("/me", response_model=UserOut)
 def me(user: Annotated[User, Depends(current_user)], db: Annotated[Session, Depends(get_db)]):
-    staff = db.scalar(select(Staff).where(Staff.user_id == user.id)) if user.role == "clinical_staff" else None
-    return UserOut(id=user.id, email=user.email, role=user.role, is_active=user.is_active,
-                   staff_type=staff.staff_type if staff else None)
+    first_name = None
+    last_name = None
+    staff_type = None
+
+    if user.role == "clinical_staff":
+        staff = db.scalar(select(Staff).where(Staff.user_id == user.id))
+        if staff:
+            first_name = staff.first_name
+            last_name = staff.last_name
+            staff_type = staff.staff_type
+    elif user.role == "patient":
+        from app.models.patient import Patient
+        patient = db.scalar(select(Patient).where(Patient.user_id == user.id))
+        if patient:
+            first_name = patient.first_name
+            last_name = patient.last_name
+    elif user.role == "admin":
+        staff = db.scalar(select(Staff).where(Staff.user_id == user.id))
+        if staff:
+            first_name = staff.first_name
+            last_name = staff.last_name
+            staff_type = staff.staff_type
+
+    return UserOut(
+        id=user.id,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
+        staff_type=staff_type,
+        first_name=first_name,
+        last_name=last_name,
+    )

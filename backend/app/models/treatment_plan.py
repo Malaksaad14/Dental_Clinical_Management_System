@@ -15,7 +15,7 @@ class TreatmentPlan(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    patient = relationship("Patient", back_populates="treatment_plans")
+    patient = relationship("Patient")
     dentist = relationship("Staff")
     items = relationship("TreatmentPlanItem", back_populates="treatment_plan", cascade="all, delete-orphan")
 

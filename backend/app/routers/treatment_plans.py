@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
 from app.models.treatment_plan import TreatmentPlan, TreatmentPlanItem
-from app.models.base_entities import Patient, Service
+from app.models.base_entities import Patient, Service, Staff
 from app.schemas.treatment_plan import (
     TreatmentPlanCreate,
     TreatmentPlanUpdate,
@@ -22,9 +22,14 @@ def create_treatment_plan(plan_in: TreatmentPlanCreate, db: Session = Depends(ge
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
+    staff = db.query(Staff).filter((Staff.id == plan_in.dentist_id) | (Staff.user_id == plan_in.dentist_id)).first()
+    if not staff:
+        staff = db.query(Staff).first()
+    final_dentist_id = staff.id if staff else 1
+
     new_plan = TreatmentPlan(
         patient_id=plan_in.patient_id,
-        dentist_id=plan_in.dentist_id,
+        dentist_id=final_dentist_id,
         title=plan_in.title,
         status=plan_in.status,
         start_date=plan_in.start_date,
@@ -125,6 +130,18 @@ def update_plan_item_status(item_id: int, item_update: TreatmentPlanItemUpdate, 
     for field, value in update_data.items():
         setattr(item, field, value)
 
+    # Automatically synchronize parent treatment plan status based on procedures
+    plan = db.query(TreatmentPlan).filter(TreatmentPlan.id == item.plan_id).first()
+    if plan and plan.items:
+        all_completed = all(i.status == "completed" for i in plan.items)
+        any_started = any(i.status in ("in_progress", "completed") for i in plan.items)
+        if all_completed:
+            plan.status = "completed"
+        elif any_started:
+            plan.status = "in_progress"
+        else:
+            plan.status = "proposed"
+
     db.commit()
     db.refresh(item)
     return item
@@ -137,5 +154,16 @@ def delete_plan_item(item_id: int, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="Plan item not found")
     db.delete(item)
+    db.commit()
+    return None
+
+
+@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_treatment_plan(plan_id: int, db: Session = Depends(get_db)):
+    """Delete a treatment plan and all its procedures."""
+    plan = db.query(TreatmentPlan).filter(TreatmentPlan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Treatment plan not found")
+    db.delete(plan)
     db.commit()
     return None

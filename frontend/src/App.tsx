@@ -30,7 +30,9 @@ export default function App(){
         <Route path="/patient" element={<Dashboard/>}/>
         <Route path="/patient/profile" element={<Profile/>}/>
         <Route path="/patient/appointments" element={<Appointments/>}/>
-        <Route path="/patient/history" element={<History/>}/>
+        <Route path="/patient/history" element={<History initialTab="medical"/>}/>
+        <Route path="/patient/treatment-plans" element={<History initialTab="plans"/>}/>
+        <Route path="/patient/prescriptions" element={<History initialTab="prescriptions"/>}/>
         <Route path="/patient/:section" element={<ModulePending/>}/>
       </Route>
     </Route>

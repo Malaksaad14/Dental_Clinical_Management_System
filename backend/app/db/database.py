@@ -9,18 +9,27 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-if not DB_PASSWORD:
-    raise RuntimeError("Set DB_PASSWORD in backend/.env")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-DATABASE_URL = URL.create(
-    "postgresql+psycopg",
-    username=os.getenv("DB_USER", "postgres"),
-    password=DB_PASSWORD,
-    host=os.getenv("DB_HOST", "localhost"),
-    port=int(os.getenv("DB_PORT", "5432")),
-    database=os.getenv("DB_NAME", "dentacare_db"),
-)
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+if not DATABASE_URL:
+    if DB_PASSWORD:
+        DATABASE_URL = URL.create(
+            "postgresql+psycopg",
+            username=os.getenv("DB_USER", "postgres"),
+            password=DB_PASSWORD,
+            host=os.getenv("DB_HOST", "localhost"),
+            port=int(os.getenv("DB_PORT", "5432")),
+            database=os.getenv("DB_NAME", "dentacare_db"),
+        )
+    else:
+        # Fallback to local SQLite so the app works seamlessly out of the box
+        default_db = Path(__file__).resolve().parents[2] / "dentacare.db"
+        DATABASE_URL = f"sqlite:///{default_db.as_posix()}"
+
+is_sqlite = str(DATABASE_URL).startswith("sqlite")
+connect_args = {"check_same_thread": False} if is_sqlite else {}
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 

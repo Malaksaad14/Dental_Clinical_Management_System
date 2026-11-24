@@ -80,9 +80,9 @@ export default function DrawnDentalChart({ teethData = {}, onSelectTooth }) {
         {/* Hover / Selection Column Highlight Background */}
         <rect
           x={cx - colWidth / 2 + 2}
-          y="15"
+          y="10"
           width={colWidth - 4}
-          height="195"
+          height="186"
           rx="12"
           fill={isHovered ? 'rgba(14, 165, 233, 0.12)' : 'transparent'}
           stroke={isHovered ? '#0ea5e9' : 'transparent'}

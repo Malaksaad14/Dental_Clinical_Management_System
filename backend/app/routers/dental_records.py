@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.dental import ToothRecord, ClinicalNote
-from app.models.base_entities import Patient
+from app.models.base_entities import Patient, Staff
 from app.schemas.dental import (
     ToothRecordCreate,
     ToothRecordOut,
@@ -19,21 +19,19 @@ def record_tooth_condition(record_in: ToothRecordCreate, db: Session = Depends(g
     """Record a clinical finding or condition for a specific tooth."""
     patient = db.query(Patient).filter(Patient.id == record_in.patient_id).first()
     if not patient:
-        # Auto-create patient record if not exists for smooth testing
-        patient = Patient(
-            id=record_in.patient_id,
-            first_name="Ahmed",
-            last_name="Mohamed",
-            phone="01198765432",
-            gender="Male"
-        )
-        db.add(patient)
-        db.commit()
-        db.refresh(patient)
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    # Resolve recorded_by to a valid staff.id (accepting either staff.id or user.id)
+    staff = None
+    if record_in.recorded_by:
+        staff = db.query(Staff).filter((Staff.id == record_in.recorded_by) | (Staff.user_id == record_in.recorded_by)).first()
+    if not staff:
+        staff = db.query(Staff).first()
+    final_recorded_by = staff.id if staff else 1
 
     record = ToothRecord(
         patient_id=record_in.patient_id,
-        recorded_by=record_in.recorded_by,
+        recorded_by=final_recorded_by,
         tooth_number=record_in.tooth_number,
         surface=record_in.surface,
         condition=record_in.condition.lower(),
@@ -53,15 +51,7 @@ def get_patient_dental_chart(patient_id: int, db: Session = Depends(get_db)):
     """
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
-        patient = Patient(
-            id=patient_id,
-            first_name="Ahmed",
-            last_name="Mohamed",
-            phone="01198765432",
-            gender="Male"
-        )
-        db.add(patient)
-        db.commit()
+        raise HTTPException(status_code=404, detail="Patient not found")
 
     records = db.query(ToothRecord).filter(ToothRecord.patient_id == patient_id).order_by(ToothRecord.recorded_at.desc()).all()
     

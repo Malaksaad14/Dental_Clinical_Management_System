@@ -57,7 +57,7 @@ const SURFACES = [
   { id: 'Lingual', label: 'Lingual / Palatal (Tongue side)', code: 'L' },
 ];
 
-export default function DentalChart({ teethData = {}, onSaveRecord, onDeleteRecord, onAddToPlan }) {
+export default function DentalChart({ teethData = {}, onSaveRecord, onDeleteRecord, onAddToPlan, readOnly = false }) {
   const [selectedTooth, setSelectedTooth] = useState(null);
   const [condition, setCondition] = useState('caries');
   const [surface, setSurface] = useState('Whole Tooth');
@@ -108,9 +108,6 @@ export default function DentalChart({ teethData = {}, onSaveRecord, onDeleteReco
               🦷 Dental Anatomy Chart (Universal 1–32)
             </h2>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Interactive clinical chart: Facial and Occlusal projections with accurate tooth selection.
-          </p>
         </div>
 
         {/* Condition Legend */}
@@ -149,6 +146,35 @@ export default function DentalChart({ teethData = {}, onSaveRecord, onDeleteReco
               </button>
             </div>
 
+            {readOnly ? (
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+                  <span className="font-bold text-slate-700 block mb-2">Existing Records on #{selectedTooth.num}:</span>
+                  {teethData[selectedTooth.num] && teethData[selectedTooth.num].length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {teethData[selectedTooth.num].map((rec) => (
+                        <div key={rec.id} className="bg-white p-2.5 rounded-lg border border-slate-200">
+                          <div className="flex items-center justify-between">
+                            <strong className="text-slate-800 capitalize font-bold">{rec.condition}</strong>
+                            <span className="text-[11px] text-slate-400">{rec.recorded_at ? new Date(rec.recorded_at).toLocaleDateString() : ''}</span>
+                          </div>
+                          <p className="text-slate-500 mt-1">Surface: {rec.surface || 'Whole Tooth'}</p>
+                          {rec.notes && <p className="text-slate-600 mt-1 italic font-mono">Note: {rec.notes}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-slate-400 italic">Healthy — No conditions or findings recorded for this tooth.</p>
+                  )}
+                </div>
+                <div className="flex justify-end pt-2">
+                  <button type="button" onClick={() => setSelectedTooth(null)}
+                    className="px-5 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
             <form onSubmit={handleFormSubmit} className="p-6 space-y-5">
               {/* Condition */}
               <div>
@@ -217,12 +243,14 @@ export default function DentalChart({ teethData = {}, onSaveRecord, onDeleteReco
 
               {/* Actions */}
               <div className="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
-                <button type="button"
-                  onClick={() => { onAddToPlan({ tooth_number: selectedTooth.num, condition, notes }); setSelectedTooth(null); }}
-                  className="px-4 py-2.5 rounded-xl border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-bold flex items-center gap-1.5">
-                  <Plus className="w-4 h-4" /> Add to Treatment Plan
-                </button>
-                <div className="flex items-center gap-2">
+                {onAddToPlan && (
+                  <button type="button"
+                    onClick={() => { onAddToPlan({ tooth_number: selectedTooth.num, condition, notes }); setSelectedTooth(null); }}
+                    className="px-4 py-2.5 rounded-xl border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-bold flex items-center gap-1.5">
+                    <Plus className="w-4 h-4" /> Add to Treatment Plan
+                  </button>
+                )}
+                <div className="flex items-center gap-2 ml-auto">
                   <button type="button" onClick={() => setSelectedTooth(null)}
                     className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-medium">
                     Cancel
@@ -235,6 +263,7 @@ export default function DentalChart({ teethData = {}, onSaveRecord, onDeleteReco
                 </div>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}

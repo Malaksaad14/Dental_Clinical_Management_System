@@ -51,7 +51,7 @@ export default function Login() {
         <form className="login-card" onSubmit={submit}>
           <span className="login-welcome">WELCOME BACK</span>
           <h2>Sign in to your account</h2>
-          <p className="login-intro">Enter your credentials to access your DentaCare workspace.</p>
+          <p className="login-intro">Enter your credentials to access your clinic workspace.</p>
           <label htmlFor="email">Email address</label>
           <div className="input-with-icon"><Icon name="mail" size={19}/><input id="email" type="email" placeholder="you@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" /></div>
           <label htmlFor="password">Password</label>
@@ -60,7 +60,7 @@ export default function Login() {
           <button className="primary login-submit" type="submit" disabled={busy}>{busy ? 'Signing in...' : 'Sign in securely'} <Icon name="arrow-right" size={19}/></button>
           <div className="login-help"><div className="login-help-icon"><Icon name="shield" size={19}/></div><p>Patient accounts are created by authorized clinic staff. Contact reception if you need login credentials.</p></div>
         </form>
-        <footer className="login-right-footer">© DentaCare EMR · Secure clinic portal</footer>
+        <footer className="login-right-footer">© Dental Clinical Management System · Secure clinic portal</footer>
       </section>
     </div>
   </div>

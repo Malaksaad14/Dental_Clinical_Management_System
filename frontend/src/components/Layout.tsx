@@ -65,7 +65,10 @@ export default function Layout() {
     .find((item) => `${root}${item.path}` === location.pathname)
   const title = current?.label ?? 'Workspace'
   const roleText = userRole(user?.role, user?.staff_type)
-  const initial = (user?.email?.[0] || 'D').toUpperCase()
+  const displayName = (user?.first_name && user?.last_name)
+    ? `${user.first_name} ${user.last_name}`
+    : user?.email ?? ''
+  const initial = (user?.first_name?.[0] || user?.email?.[0] || 'D').toUpperCase()
 
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
 
@@ -113,7 +116,7 @@ export default function Layout() {
       <div className="sidebar-bottom">
         <div className="user-card">
           <div className="user-avatar">{initial}</div>
-          <div className="user-details"><strong title={user?.email}>{user?.email}</strong><span>{roleText}</span></div>
+          <div className="user-details"><strong title={user?.email}>{displayName}</strong><span>{roleText}</span></div>
         </div>
         <button className="logout" type="button" disabled={loggingOut} onClick={handleLogout}>
           <Icon name="logout" size={18} />{loggingOut ? 'Signing out...' : 'Sign out'}

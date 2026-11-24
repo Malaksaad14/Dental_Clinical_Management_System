@@ -1,10 +1,14 @@
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
 from app.models.prescription import Prescription, PrescriptionItem
-from app.models.base_entities import Patient
+from app.models.base_entities import Patient, Staff
 from app.schemas.prescription import PrescriptionCreate, PrescriptionOut
+
+class PrescriptionUpdate(BaseModel):
+    notes: Optional[str] = None
 
 router = APIRouter(prefix="/prescriptions", tags=["Prescriptions"])
 
@@ -15,9 +19,14 @@ def create_prescription(rx_in: PrescriptionCreate, db: Session = Depends(get_db)
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
+    staff = db.query(Staff).filter((Staff.id == rx_in.dentist_id) | (Staff.user_id == rx_in.dentist_id)).first()
+    if not staff:
+        staff = db.query(Staff).first()
+    final_dentist_id = staff.id if staff else 1
+
     rx = Prescription(
         patient_id=rx_in.patient_id,
-        dentist_id=rx_in.dentist_id,
+        dentist_id=final_dentist_id,
         appointment_id=rx_in.appointment_id,
         notes=rx_in.notes
     )
@@ -55,3 +64,27 @@ def get_prescription(prescription_id: int, db: Session = Depends(get_db)):
     if not rx:
         raise HTTPException(status_code=404, detail="Prescription not found")
     return rx
+
+
+@router.patch("/{prescription_id}", response_model=PrescriptionOut)
+def update_prescription(prescription_id: int, rx_update: PrescriptionUpdate, db: Session = Depends(get_db)):
+    """Update prescription notes."""
+    rx = db.query(Prescription).options(joinedload(Prescription.items)).filter(Prescription.id == prescription_id).first()
+    if not rx:
+        raise HTTPException(status_code=404, detail="Prescription not found")
+    if rx_update.notes is not None:
+        rx.notes = rx_update.notes
+    db.commit()
+    db.refresh(rx)
+    return rx
+
+
+@router.delete("/{prescription_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_prescription(prescription_id: int, db: Session = Depends(get_db)):
+    """Delete a prescription and its medication items."""
+    rx = db.query(Prescription).filter(Prescription.id == prescription_id).first()
+    if not rx:
+        raise HTTPException(status_code=404, detail="Prescription not found")
+    db.delete(rx)
+    db.commit()
+    return None

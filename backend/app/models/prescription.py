@@ -13,7 +13,7 @@ class Prescription(Base):
     issued_at = Column(DateTime, default=datetime.utcnow)
     notes = Column(Text, nullable=True)
 
-    patient = relationship("Patient", back_populates="prescriptions")
+    patient = relationship("Patient")
     dentist = relationship("Staff")
     items = relationship("PrescriptionItem", back_populates="prescription", cascade="all, delete-orphan")
 
