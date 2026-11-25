@@ -13,6 +13,10 @@ import History from './pages/History'
 import Reports from './pages/Reports'
 import Catalog from './pages/Catalog'
 import ModulePending from './pages/ModulePending'
+import MyBills from './pages/MyBills'
+import Invoices from './pages/Invoices'
+import InvoiceDetail from './pages/InvoiceDetail'
+import InvoiceNew from './pages/InvoiceNew'
 
 function Home(){
   const {user,initializing}=useAuth()
@@ -34,6 +38,7 @@ export default function App(){
         <Route path="/patient/history" element={<History initialTab="medical"/>}/>
         <Route path="/patient/treatment-plans" element={<History initialTab="plans"/>}/>
         <Route path="/patient/prescriptions" element={<History initialTab="prescriptions"/>}/>
+        <Route path="/patient/billing" element={<MyBills/>}/>
         <Route path="/patient/:section" element={<ModulePending/>}/>
       </Route>
     </Route>
@@ -45,6 +50,9 @@ export default function App(){
         <Route path="/staff/patients/new" element={<CreatePatient/>}/>
         <Route path="/staff/appointments" element={<Appointments/>}/>
         <Route path="/staff/history" element={<History/>}/>
+        <Route path="/staff/billing" element={<Invoices/>}/>
+        <Route path="/staff/billing/new" element={<InvoiceNew/>}/>
+        <Route path="/staff/billing/:id" element={<InvoiceDetail/>}/>
       </Route>
     </Route>
 
@@ -60,6 +68,9 @@ export default function App(){
         <Route path="/admin/history" element={<History/>}/>
         <Route path="/admin/reports" element={<Reports/>}/>
         <Route path="/admin/catalog" element={<Catalog/>}/>
+        <Route path="/admin/billing" element={<Invoices/>}/>
+        <Route path="/admin/billing/new" element={<InvoiceNew/>}/>
+        <Route path="/admin/billing/:id" element={<InvoiceDetail/>}/>
       </Route>
     </Route>
 
