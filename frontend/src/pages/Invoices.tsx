@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
+import { useAuth } from '../auth/AuthContext'
 import { api, messageFromError } from '../api/client'
 import type { Invoice } from '../types'
 
 const money = (value: string) => Number(value).toFixed(2)
 
 export default function Invoices() {
+  const { user } = useAuth()
+  const root = user?.role === 'admin' ? '/admin' : '/staff'
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -39,7 +43,7 @@ export default function Invoices() {
           <tbody>
             {invoices.map((inv) => (
               <tr key={inv.id}>
-                <td>{inv.invoice_number}</td>
+                <td><Link to={`${root}/billing/${inv.id}`}>{inv.invoice_number}</Link></td>
                 <td>{inv.patient_id}</td>
                 <td>{inv.issue_date}</td>
                 <td>{money(inv.total)}</td>
