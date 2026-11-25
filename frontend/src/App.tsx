@@ -15,6 +15,7 @@ import ModulePending from './pages/ModulePending'
 import MyBills from './pages/MyBills'
 import Invoices from './pages/Invoices'
 import InvoiceDetail from './pages/InvoiceDetail'
+import InvoiceNew from './pages/InvoiceNew'
 
 function Home(){
   const {user,initializing}=useAuth()
@@ -49,6 +50,7 @@ export default function App(){
         <Route path="/staff/appointments" element={<Appointments/>}/>
         <Route path="/staff/history" element={<History/>}/>
         <Route path="/staff/billing" element={<Invoices/>}/>
+        <Route path="/staff/billing/new" element={<InvoiceNew/>}/>
         <Route path="/staff/billing/:id" element={<InvoiceDetail/>}/>
       </Route>
     </Route>
@@ -65,6 +67,7 @@ export default function App(){
         <Route path="/admin/history" element={<History/>}/>
         <Route path="/admin/catalog" element={<Catalog/>}/>
         <Route path="/admin/billing" element={<Invoices/>}/>
+        <Route path="/admin/billing/new" element={<InvoiceNew/>}/>
         <Route path="/admin/billing/:id" element={<InvoiceDetail/>}/>
       </Route>
     </Route>

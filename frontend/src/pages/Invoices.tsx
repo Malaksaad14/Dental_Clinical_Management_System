@@ -25,6 +25,7 @@ export default function Invoices() {
       <div className="page-heading">
         <h1>Billing</h1>
         <p>All patient invoices.</p>
+        <p><Link className="primary" to={`${root}/billing/new`}>New invoice</Link></p>
       </div>
       {error && <p className="error" role="alert">{error}</p>}
       {loading ? <p>Loading...</p> : invoices.length === 0 ? <p className="hint">No invoices yet.</p> : (
