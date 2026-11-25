@@ -10,7 +10,7 @@ const COMMON_DRUGS = [
   { name: 'Flagyl 500mg (Metronidazole)', dosage: '1 tablet', freq: 'Every 8 hours with meals', dur: '5 days' }
 ];
 
-export default function PrescriptionsList({ prescriptions = [], onCreatePrescription, onDeletePrescription, onUpdatePrescription, readOnly = false }) {
+export default function PrescriptionsList({ prescriptions = /** @type {object[]} */ ([]), onCreatePrescription, onDeletePrescription, onUpdatePrescription, readOnly = false }) {
   const [showModal, setShowModal] = useState(false);
   const [editingRx, setEditingRx] = useState(null);
   const [editNotes, setEditNotes] = useState('');

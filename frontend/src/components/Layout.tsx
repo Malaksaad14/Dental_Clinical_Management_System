@@ -30,6 +30,7 @@ function userNavigation(role: string | undefined, staffType: string | null | und
       { path: '/appointments', label: 'Appointments', icon: 'calendar' },
       { path: '/patients', label: 'Patient directory', icon: 'users' },
       { path: '/patients/new', label: 'Add patient', icon: 'user-plus' },
+      { path: '/billing', label: 'Billing', icon: 'credit-card' },
       ...(role === 'admin' || staffType !== 'receptionist' ? [
         { path: '/history', label: 'Clinical history', icon: 'clipboard' as IconName },
       ] : []),
@@ -40,6 +41,7 @@ function userNavigation(role: string | undefined, staffType: string | null | und
       { path: '/staff', label: 'Staff directory', icon: 'doctor' },
       { path: '/staff/new', label: 'Add staff member', icon: 'user-plus' },
       { path: '/accounts', label: 'Manage accounts', icon: 'shield' },
+      { path: '/reports', label: 'Reports', icon: 'dashboard' },
       { path: '/catalog', label: 'Clinic settings', icon: 'settings' },
     ] })
   }

@@ -43,24 +43,24 @@ export default function Login() {
             <div className="login-float-icon icon-shield"><Icon name="shield" size={21}/></div>
           </div>
         </div>
-        <div className="login-brand-footer"><Icon name="shield" size={17}/> Private by design. Built for better workflows.</div>
+
       </section>
 
       <section className="login-form-panel">
         <div className="login-mobile-brand"><div className="logo"><Icon name="tooth" size={22}/></div><b>DentaCare<span>.</span></b></div>
         <form className="login-card" onSubmit={submit}>
           <span className="login-welcome">WELCOME BACK</span>
-          <h2>Sign in to your account</h2>
+          <h2>Sign in</h2>
           <p className="login-intro">Enter your credentials to access your clinic workspace.</p>
           <label htmlFor="email">Email address</label>
           <div className="input-with-icon"><Icon name="mail" size={19}/><input id="email" type="email" placeholder="you@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" /></div>
           <label htmlFor="password">Password</label>
           <div className="input-with-icon"><Icon name="lock" size={19}/><input id="password" type={passwordVisible ? 'text' : 'password'} placeholder="Enter your password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /><button type="button" className="password-toggle" onClick={() => setPasswordVisible((visible) => !visible)} aria-label={passwordVisible ? 'Hide password' : 'Show password'}>{passwordVisible ? 'Hide' : 'Show'}</button></div>
           {error && <p className="error login-error" role="alert">{error}</p>}
-          <button className="primary login-submit" type="submit" disabled={busy}>{busy ? 'Signing in...' : 'Sign in securely'} <Icon name="arrow-right" size={19}/></button>
-          <div className="login-help"><div className="login-help-icon"><Icon name="shield" size={19}/></div><p>Patient accounts are created by authorized clinic staff. Contact reception if you need login credentials.</p></div>
+          <button className="primary login-submit" type="submit" disabled={busy}>{busy ? 'Signing in...' : 'Sign in'} <Icon name="arrow-right" size={19}/></button>
+          
         </form>
-        <footer className="login-right-footer">© Dental Clinical Management System · Secure clinic portal</footer>
+
       </section>
     </div>
   </div>

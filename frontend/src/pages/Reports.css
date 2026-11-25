@@ -1,0 +1,5 @@
+.report-bars { list-style: none; padding: 0; max-width: 52rem; }
+.report-bars li { display: grid; grid-template-columns: minmax(7rem, auto) minmax(2rem, 1fr) 3rem; gap: .85rem; align-items: center; padding: .4rem 0; font-variant-numeric: tabular-nums; }
+.report-bars strong { text-align: right; }
+.report-track { height: .75rem; background: #e6efee; border-radius: .5rem; overflow: hidden; }
+.report-track > span { display: block; height: 100%; background: var(--teal); border-radius: inherit; }

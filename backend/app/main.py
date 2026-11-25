@@ -11,6 +11,8 @@ from app.db.database import engine
 from app.routers import (
     appointments,
     auth,
+    billing,
+    reports,
     catalog,
     history,
     patients,
@@ -39,6 +41,7 @@ app.add_middleware(
 
 # Authentication & Base System Routers (Manar)
 app.include_router(auth.router)
+app.include_router(reports.router)
 app.include_router(patients.router)
 app.include_router(staff.router)
 app.include_router(catalog.router)
@@ -49,6 +52,7 @@ app.include_router(history.router)
 app.include_router(dental_records.router, prefix="/api/v1")
 app.include_router(treatment_plans.router, prefix="/api/v1")
 app.include_router(prescriptions.router, prefix="/api/v1")
+app.include_router(billing.router, prefix="/api/v1")
 
 @app.get("/")
 def root():

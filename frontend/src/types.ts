@@ -90,3 +90,49 @@ export interface HistoryData {
   medical: MedicalHistory | null
   tooth_records: ToothRecord[]
 }
+
+export type InvoiceStatus = 'unpaid' | 'partially_paid' | 'paid' | 'cancelled'
+
+export interface InvoiceItem {
+  id: number
+  service_id: number | null
+  description: string
+  tooth_number: number | null
+  icd10_code: string | null
+  quantity: number
+  unit_price: string
+  line_total: string
+}
+
+export interface Payment {
+  id: number
+  amount: string
+  method: string
+  status: string
+  reference: string | null
+  paid_at: string
+}
+
+export interface Invoice {
+  id: number
+  invoice_number: string
+  patient_id: number
+  treatment_plan_id: number | null
+  appointment_id: number | null
+  status: InvoiceStatus
+  issue_date: string
+  due_date: string | null
+  subtotal: string
+  discount: string
+  tax_rate: string
+  tax: string
+  total: string
+  amount_paid: string
+  balance_due: string
+  notes: string | null
+  items: InvoiceItem[]
+  payments: Payment[]
+}
+
+export interface Slot { start_time: string; end_time: string }
+export interface SlotsResponse { dentist_id: number; service_id: number; day: string; duration_minutes: number; slots: Slot[] }
