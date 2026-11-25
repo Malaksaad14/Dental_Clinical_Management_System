@@ -34,6 +34,7 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
   const [prescriptions, setPrescriptions] = useState<any[]>([])
   const [data, setData] = useState<HistoryData | null>(null)
   const [fields, setFields] = useState(emptyHistory)
+  const [prefilledPlan, setPrefilledPlan] = useState<any>(null)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -277,6 +278,29 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
     }
   }
 
+  const handleAddToPlan = (finding: { tooth_number: number; condition: string; notes?: string }) => {
+    let serviceId = 3 // default: Composite Resin Filling (450 EGP)
+    if (finding.condition === 'caries') serviceId = 3
+    else if (finding.condition === 'filling') serviceId = 3
+    else if (finding.condition === 'crown') serviceId = 6
+    else if (finding.condition === 'missing') serviceId = 7
+    else if (finding.condition === 'pulpitis') serviceId = 5
+
+    setPrefilledPlan({
+      title: `Treatment Plan for Tooth #${finding.tooth_number} (${finding.condition || 'Procedure'})`,
+      notes: finding.notes || `Recommended procedure for ${finding.condition || 'condition'} on tooth #${finding.tooth_number}`,
+      items: [
+        {
+          service_id: serviceId,
+          tooth_number: String(finding.tooth_number),
+          notes: finding.notes || `Procedure for tooth #${finding.tooth_number}`
+        }
+      ]
+    })
+    setActiveTab('plans')
+    showToast(`Tooth #${finding.tooth_number} pre-filled in New Treatment Plan!`)
+  }
+
   return (
     <div className="panel" style={{ padding: '24px 28px' }}>
       {/* Toast Alert */}
@@ -421,7 +445,7 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
             teethData={teethData}
             onSaveRecord={handleSaveToothRecord}
             onDeleteRecord={handleDeleteToothRecord}
-            onAddToPlan={() => setActiveTab('plans')}
+            onAddToPlan={handleAddToPlan}
             readOnly={patientMode}
           />
         </div>
@@ -437,6 +461,8 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
             onDeletePlan={handleDeletePlan}
             onUpdatePlan={handleUpdatePlan}
             readOnly={patientMode}
+            prefilledPlan={prefilledPlan}
+            onClearPrefilledPlan={() => setPrefilledPlan(null)}
           />
         </div>
       )}

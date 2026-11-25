@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, CheckCircle, Clock, AlertCircle, ChevronDown, ChevronUp, FileText, Check, Trash2, Edit2, X } from 'lucide-react';
 
 const DENTAL_SERVICES = [
@@ -11,7 +11,11 @@ const DENTAL_SERVICES = [
   { id: 7, code: 'D7140', name: 'Simple Tooth Extraction', price: 400 },
 ];
 
+<<<<<<< Updated upstream
 export default function TreatmentPlanList({ plans = [], onCreatePlan, onUpdateItemStatus, onDeletePlan, onUpdatePlan, readOnly = false }) {
+=======
+export default function TreatmentPlanList({ plans = /** @type {object[]} */ ([]), onCreatePlan, onUpdateItemStatus, onDeletePlan, onUpdatePlan, readOnly = false, prefilledPlan = null, onClearPrefilledPlan = null }) {
+>>>>>>> Stashed changes
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [editTitle, setEditTitle] = useState('');
@@ -23,6 +27,18 @@ export default function TreatmentPlanList({ plans = [], onCreatePlan, onUpdateIt
     { service_id: 2, tooth_number: '', notes: 'Full mouth scaling' }
   ]);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (prefilledPlan) {
+      setTitle(prefilledPlan.title || '');
+      setNotes(prefilledPlan.notes || '');
+      if (prefilledPlan.items && prefilledPlan.items.length > 0) {
+        setSelectedItems(prefilledPlan.items);
+      }
+      setShowCreateModal(true);
+      if (onClearPrefilledPlan) onClearPrefilledPlan();
+    }
+  }, [prefilledPlan]);
 
   const handleAddItemRow = () => {
     setSelectedItems([...selectedItems, { service_id: 3, tooth_number: '', notes: '' }]);
