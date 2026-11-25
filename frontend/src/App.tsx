@@ -13,6 +13,7 @@ import History from './pages/History'
 import Catalog from './pages/Catalog'
 import ModulePending from './pages/ModulePending'
 import MyBills from './pages/MyBills'
+import Invoices from './pages/Invoices'
 
 function Home(){
   const {user,initializing}=useAuth()
@@ -46,6 +47,7 @@ export default function App(){
         <Route path="/staff/patients/new" element={<CreatePatient/>}/>
         <Route path="/staff/appointments" element={<Appointments/>}/>
         <Route path="/staff/history" element={<History/>}/>
+        <Route path="/staff/billing" element={<Invoices/>}/>
       </Route>
     </Route>
 
@@ -60,6 +62,7 @@ export default function App(){
         <Route path="/admin/appointments" element={<Appointments/>}/>
         <Route path="/admin/history" element={<History/>}/>
         <Route path="/admin/catalog" element={<Catalog/>}/>
+        <Route path="/admin/billing" element={<Invoices/>}/>
       </Route>
     </Route>
 
