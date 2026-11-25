@@ -12,12 +12,23 @@ export default function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [names, setNames] = useState<Record<string, string>>({})
 
   useEffect(() => {
     api.get<Invoice[]>('/api/v1/invoices')
       .then((res) => setInvoices(res.data))
       .catch((err) => setError(messageFromError(err)))
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    api.get<{ id: number; first_name: string; last_name: string }[]>('/patients')
+      .then((res) => {
+        const m: Record<string, string> = {}
+        res.data.forEach((pt) => { m[String(pt.id)] = pt.first_name + ' ' + pt.last_name })
+        setNames(m)
+      })
+      .catch(() => {})
   }, [])
 
   return (
@@ -33,7 +44,7 @@ export default function Invoices() {
           <thead>
             <tr>
               <th>Invoice</th>
-              <th>Patient ID</th>
+              <th>Patient</th>
               <th>Date</th>
               <th>Total</th>
               <th>Paid</th>
@@ -45,7 +56,7 @@ export default function Invoices() {
             {invoices.map((inv) => (
               <tr key={inv.id}>
                 <td><Link to={`${root}/billing/${inv.id}`}>{inv.invoice_number}</Link></td>
-                <td>{inv.patient_id}</td>
+                <td>{names[String(inv.patient_id)] ?? inv.patient_id}</td>
                 <td>{inv.issue_date}</td>
                 <td>{money(inv.total)}</td>
                 <td>{money(inv.amount_paid)}</td>
