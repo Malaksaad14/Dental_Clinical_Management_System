@@ -19,6 +19,8 @@ from app.models.clinic import Service, Chair
 from app.models.base_entities import ICD10Code
 
 def seed():
+    # NOTE: Tables are created by Alembic migrations (alembic upgrade head).
+    # create_all is kept only as a safety net for local dev if migrations haven't run.
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
