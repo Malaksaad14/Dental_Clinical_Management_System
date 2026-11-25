@@ -133,3 +133,6 @@ export interface Invoice {
   items: InvoiceItem[]
   payments: Payment[]
 }
+
+export interface Slot { start_time: string; end_time: string }
+export interface SlotsResponse { dentist_id: number; service_id: number; day: string; duration_minutes: number; slots: Slot[] }

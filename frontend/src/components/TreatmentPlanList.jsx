@@ -11,7 +11,7 @@ const DENTAL_SERVICES = [
   { id: 7, code: 'D7140', name: 'Simple Tooth Extraction', price: 400 },
 ];
 
-export default function TreatmentPlanList({ plans = [], onCreatePlan, onUpdateItemStatus, onDeletePlan, onUpdatePlan, readOnly = false }) {
+export default function TreatmentPlanList({ plans = /** @type {object[]} */ ([]), onCreatePlan, onUpdateItemStatus, onDeletePlan, onUpdatePlan, readOnly = false }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [editTitle, setEditTitle] = useState('');
