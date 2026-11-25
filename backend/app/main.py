@@ -11,6 +11,7 @@ from app.db.database import engine
 from app.routers import (
     appointments,
     auth,
+    billing,
     catalog,
     history,
     patients,
@@ -49,6 +50,7 @@ app.include_router(history.router)
 app.include_router(dental_records.router, prefix="/api/v1")
 app.include_router(treatment_plans.router, prefix="/api/v1")
 app.include_router(prescriptions.router, prefix="/api/v1")
+app.include_router(billing.router, prefix="/api/v1")
 
 @app.get("/")
 def root():
