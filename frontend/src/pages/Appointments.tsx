@@ -73,6 +73,7 @@ function SlotPicker({ dentistId, serviceId, onPick, selected }: {
 export default function Appointments() {
   const { user } = useAuth()
   const patientMode = user?.role === 'patient'
+  const canBook = user?.role === 'admin' || user?.staff_type === 'receptionist' || patientMode
   const [searchParams] = useSearchParams()
   const [patients, setPatients] = useState<Patient[]>([])
   const [dentists, setDentists] = useState<Dentist[]>([])
@@ -186,55 +187,58 @@ export default function Appointments() {
       {/* Patients, receptionists, dentists and admins can view the timetable. */}
       <DoctorSchedule dentists={dentists} availability={availability} />
 
-      <h2 className="section-heading">Book an appointment</h2>
-      <form className="form-grid" onSubmit={book}>
-        {!patientMode && <label>Patient
-          <select required value={form.patient_id} onChange={(e) => update('patient_id', e.target.value)}>
-            <option value="">Select patient</option>
-            {patients.map((patient) => <option key={patient.id} value={patient.id}>
-              {patient.first_name} {patient.last_name} (#{patient.id})
-            </option>)}
-          </select>
-        </label>}
-        <label>Dentist
-          <select required value={form.dentist_id} onChange={(e) => { update('dentist_id', e.target.value); update('start_time', ''); setError('') }}>
-            <option value="">Select dentist</option>
-            {dentists.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.name}</option>)}
-          </select>
-        </label>
-        <label>Service
-          <select required value={form.service_id} onChange={(e) => { update('service_id', e.target.value); update('start_time', '') }}>
-            <option value="">Select service</option>
-            {services.map((service) => <option key={service.id} value={service.id}>
-              {service.name} ({service.duration_minutes} min)
-            </option>)}
-          </select>
-        </label>
-                <SlotPicker key={pickerKey} dentistId={selectedDentistId} serviceId={Number(form.service_id)}
-          selected={form.start_time} onPick={(iso) => update('start_time', iso)} />
-        {form.start_time && <p className="hint span-all">Selected: {fmtDateTime(form.start_time)}</p>}
-        <label>Reason (optional)
-          <input maxLength={500} value={form.reason} onChange={(e) => update('reason', e.target.value)} />
-        </label>
-        {selectedDentist && <div className="schedule-selection-note span-all">
-          <strong>{selectedDentist.name}</strong>
-          {doctorHours.length === 0
-            ? <p className="error">This dentist has no configured working hours yet.</p>
-            : <p className="hint">Working days: {[...new Set(doctorHours.map((slot) => WEEK_DAYS[slot.day_of_week]))].join(', ')}.</p>}
-        
-        </div>}
-        <p className="hint span-all">
-          Working hours repeat weekly in Africa/Cairo. Appointment duration must fit inside the selected shift.
-          The server also checks existing bookings and free chairs.
-        </p>
-        {error && <p role="alert" className="error span-all">{error}</p>}
-        {success && <p role="status" className="success span-all">{success}</p>}
-        <button className="primary span-all" disabled={busy || dentists.length === 0 || services.length === 0 || (selectedDentistId > 0 && doctorHours.length === 0)}>
-          {busy ? 'Booking...' : 'Book appointment'}
-        </button>
-      </form>
+      {canBook && (
+        <>
+          <h2 className="section-heading">Book an appointment</h2>
+          <form className="form-grid" onSubmit={book}>
+            {!patientMode && <label>Patient
+              <select required value={form.patient_id} onChange={(e) => update('patient_id', e.target.value)}>
+                <option value="">Select patient</option>
+                {patients.map((patient) => <option key={patient.id} value={patient.id}>
+                  {patient.first_name} {patient.last_name} (#{patient.id})
+                </option>)}
+              </select>
+            </label>}
+            <label>Dentist
+              <select required value={form.dentist_id} onChange={(e) => { update('dentist_id', e.target.value); update('start_time', ''); setError('') }}>
+                <option value="">Select dentist</option>
+                {dentists.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.name}</option>)}
+              </select>
+            </label>
+            <label>Service
+              <select required value={form.service_id} onChange={(e) => { update('service_id', e.target.value); update('start_time', '') }}>
+                <option value="">Select service</option>
+                {services.map((service) => <option key={service.id} value={service.id}>
+                  {service.name} ({service.duration_minutes} min)
+                </option>)}
+              </select>
+            </label>
+            <SlotPicker key={pickerKey} dentistId={selectedDentistId} serviceId={Number(form.service_id)}
+              selected={form.start_time} onPick={(iso) => update('start_time', iso)} />
+            {form.start_time && <p className="hint span-all">Selected: {fmtDateTime(form.start_time)}</p>}
+            <label>Reason (optional)
+              <input maxLength={500} value={form.reason} onChange={(e) => update('reason', e.target.value)} />
+            </label>
+            {selectedDentist && <div className="schedule-selection-note span-all">
+              <strong>{selectedDentist.name}</strong>
+              {doctorHours.length === 0
+                ? <p className="error">This dentist has no configured working hours yet.</p>
+                : <p className="hint">Working days: {[...new Set(doctorHours.map((slot) => WEEK_DAYS[slot.day_of_week]))].join(', ')}.</p>}
+            </div>}
+            <p className="hint span-all">
+              Working hours repeat weekly in Africa/Cairo. Appointment duration must fit inside the selected shift.
+              The server also checks existing bookings and free chairs.
+            </p>
+            {error && <p role="alert" className="error span-all">{error}</p>}
+            {success && <p role="status" className="success span-all">{success}</p>}
+            <button className="primary span-all" disabled={busy || dentists.length === 0 || services.length === 0 || (selectedDentistId > 0 && doctorHours.length === 0)}>
+              {busy ? 'Booking...' : 'Book appointment'}
+            </button>
+          </form>
+        </>
+      )}
 
-           <h2 className="section-heading">{patientMode ? 'Your visits' : 'All scheduled visits'}</h2>
+      <h2 className="section-heading">{patientMode ? 'Your visits' : 'All scheduled visits'}</h2>
 
       <label style={{ maxWidth: 220 }}>Filter by status
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
