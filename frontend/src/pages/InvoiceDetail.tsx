@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { api, messageFromError } from '../api/client'
@@ -13,13 +13,39 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [amount, setAmount] = useState('')
+  const [method, setMethod] = useState('cash')
+  const [saving, setSaving] = useState(false)
+
+  function load() {
+    return api.get<Invoice>(`/api/v1/invoices/${id}`).then((res) => setInvoice(res.data))
+  }
 
   useEffect(() => {
-    api.get<Invoice>(`/api/v1/invoices/${id}`)
-      .then((res) => setInvoice(res.data))
+    load()
       .catch((err) => setError(messageFromError(err)))
       .finally(() => setLoading(false))
   }, [id])
+
+  async function recordPayment(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+    setSaving(true)
+    try {
+      await api.post(`/api/v1/invoices/${id}/payments`, { amount: Number(amount), method })
+      await load()
+      setAmount('')
+      setSuccess('Payment recorded.')
+    } catch (err) {
+      setError(messageFromError(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const canPay = invoice?.status === 'unpaid' || invoice?.status === 'partially_paid'
 
   return (
     <div className="panel">
@@ -28,6 +54,7 @@ export default function InvoiceDetail() {
         <p><Link to={`${root}/billing`}>Back to all invoices</Link></p>
       </div>
       {error && <p className="error" role="alert">{error}</p>}
+      {success && <p className="success" role="status">{success}</p>}
       {loading && <p>Loading...</p>}
       {invoice && (
         <>
@@ -73,6 +100,34 @@ export default function InvoiceDetail() {
                 ))}
               </tbody>
             </table>
+          )}
+
+          {canPay && (
+            <>
+              <h2 className="section-heading">Record payment</h2>
+              <form className="form-grid" onSubmit={recordPayment}>
+                <label>Amount
+                  <input
+                    required
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </label>
+                <label>Method
+                  <select value={method} onChange={(e) => setMethod(e.target.value)}>
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                    <option value="online">Online</option>
+                  </select>
+                </label>
+                <button className="primary span-all" type="submit" disabled={saving}>
+                  {saving ? 'Saving...' : 'Record payment'}
+                </button>
+              </form>
+            </>
           )}
         </>
       )}
