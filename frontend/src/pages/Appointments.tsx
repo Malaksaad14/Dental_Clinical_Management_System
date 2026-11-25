@@ -73,6 +73,7 @@ function SlotPicker({ dentistId, serviceId, onPick, selected }: {
 export default function Appointments() {
   const { user } = useAuth()
   const patientMode = user?.role === 'patient'
+  const isDoctor = user?.role === 'clinical_staff' && user?.staff_type === 'dentist'
   const canBook = user?.role === 'admin' || user?.staff_type === 'receptionist' || patientMode
   const [searchParams] = useSearchParams()
   const [patients, setPatients] = useState<Patient[]>([])
@@ -181,11 +182,11 @@ export default function Appointments() {
     <div className="panel">
       <div className="page-heading">
         <h1>{patientMode ? 'My Appointments' : 'Clinic Appointments'}</h1>
-        <p>Check dentists' weekly working hours before booking a visit.</p>
+        <p>{isDoctor ? 'Review scheduled patient visits, update consultation statuses, and manage consultations.' : 'Check dentists\' weekly working hours before booking a visit.'}</p>
       </div>
 
-      {/* Patients, receptionists, dentists and admins can view the timetable. */}
-      <DoctorSchedule dentists={dentists} availability={availability} />
+      {/* Only show doctor directory / timetable to patients, receptionists and admins */}
+      {!isDoctor && <DoctorSchedule dentists={dentists} availability={availability} />}
 
       {canBook && (
         <>
