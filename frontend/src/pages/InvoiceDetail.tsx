@@ -14,6 +14,17 @@ export default function InvoiceDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [patientName, setPatientName] = useState('')
+
+  useEffect(() => {
+    if (!invoice) return
+    api.get<{ id: number; first_name: string; last_name: string }[]>('/patients')
+      .then((res) => {
+        const pt = res.data.find((x) => String(x.id) === String(invoice.patient_id))
+        if (pt) setPatientName(pt.first_name + ' ' + pt.last_name)
+      })
+      .catch(() => {})
+  }, [invoice])
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState('cash')
   const [saving, setSaving] = useState(false)
@@ -75,7 +86,7 @@ export default function InvoiceDetail() {
       {invoice && (
         <>
           <p>
-            Patient ID: {invoice.patient_id} | Date: {invoice.issue_date} | Status: {invoice.status.replace('_', ' ')}
+            Patient: {patientName || invoice.patient_id} | Date: {invoice.issue_date} | Status: {invoice.status.replace('_', ' ')}
           </p>
 
           {canCancel && (
