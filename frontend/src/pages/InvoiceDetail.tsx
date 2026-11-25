@@ -45,6 +45,22 @@ export default function InvoiceDetail() {
     }
   }
 
+  async function cancelInvoice() {
+    if (!window.confirm('Cancel this invoice?')) return
+    setError('')
+    setSuccess('')
+    setSaving(true)
+    try {
+      await api.post(`/api/v1/invoices/${id}/cancel`)
+      await load()
+      setSuccess('Invoice cancelled.')
+    } catch (err) {
+      setError(messageFromError(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+  const canCancel = invoice?.status === 'unpaid'
   const canPay = invoice?.status === 'unpaid' || invoice?.status === 'partially_paid'
 
   return (
@@ -61,6 +77,12 @@ export default function InvoiceDetail() {
           <p>
             Patient ID: {invoice.patient_id} | Date: {invoice.issue_date} | Status: {invoice.status.replace('_', ' ')}
           </p>
+
+          {canCancel && (
+            <button className="secondary" type="button" onClick={cancelInvoice} disabled={saving}>
+              Cancel invoice
+            </button>
+          )}
 
           <h2 className="section-heading">Items</h2>
           <table>
