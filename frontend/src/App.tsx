@@ -10,6 +10,7 @@ import { AccountsDirectory, PatientsDirectory, StaffDirectory } from './pages/Di
 import Profile from './pages/Profile'
 import Appointments from './pages/Appointments'
 import History from './pages/History'
+import Reports from './pages/Reports'
 import Catalog from './pages/Catalog'
 import ModulePending from './pages/ModulePending'
 
@@ -57,6 +58,7 @@ export default function App(){
         <Route path="/admin/accounts" element={<AccountsDirectory/>}/>
         <Route path="/admin/appointments" element={<Appointments/>}/>
         <Route path="/admin/history" element={<History/>}/>
+        <Route path="/admin/reports" element={<Reports/>}/>
         <Route path="/admin/catalog" element={<Catalog/>}/>
       </Route>
     </Route>

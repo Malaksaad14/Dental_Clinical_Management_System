@@ -12,6 +12,7 @@ from app.routers import (
     appointments,
     auth,
     billing,
+    reports,
     catalog,
     history,
     patients,
@@ -40,6 +41,7 @@ app.add_middleware(
 
 # Authentication & Base System Routers (Manar)
 app.include_router(auth.router)
+app.include_router(reports.router)
 app.include_router(patients.router)
 app.include_router(staff.router)
 app.include_router(catalog.router)
