@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+﻿from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Literal
 
@@ -241,3 +241,20 @@ class WeeklyAvailabilityIn(BaseModel):
         if len(weekdays) != len(set(weekdays)):
             raise ValueError("Each weekday can only appear once")
         return days
+# ===== Appointment Management additions (Olivia) =====
+class SlotOut(BaseModel):
+    start_time: datetime
+    end_time: datetime
+
+
+class AvailabilityQueryOut(BaseModel):
+    dentist_id: int
+    service_id: int
+    day: date
+    duration_minutes: int
+    slots: list[SlotOut]
+
+
+class RescheduleIn(BaseModel):
+    start_time: datetime
+    dentist_id: int | None = None  # Ø§Ø®ØªÙŠØ§Ø±ÙŠ: Ù„Ùˆ Ø¹Ø§ÙŠØ²Ø© ØªØºÙŠØ±ÙŠ Ø§Ù„Ø¯ÙƒØªÙˆØ±
