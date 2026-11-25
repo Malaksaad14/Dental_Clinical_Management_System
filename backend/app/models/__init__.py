@@ -8,6 +8,7 @@ from app.models.treatment_plan import TreatmentPlan, TreatmentPlanItem
 from app.models.prescription import Prescription, PrescriptionItem
 from app.models.dental import ClinicalNote
 from app.models.base_entities import ICD10Code
+from app.models.billing import Invoice, InvoiceItem, Payment
 
 __all__ = [
     "User",
@@ -25,5 +26,8 @@ __all__ = [
     "Prescription",
     "PrescriptionItem",
     "ClinicalNote",
-    "ICD10Code"
+    "ICD10Code" ,
+   "Invoice",
+    "InvoiceItem",
+    "Payment",
 ]
