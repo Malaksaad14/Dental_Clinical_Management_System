@@ -1,0 +1,20 @@
+/* Scoped voice dictation controls — keeps the existing DentaCare design system. */
+.voice-field { min-width: 0; }
+.voice-field > label:first-child { display: block; margin-bottom: 7px; font-weight: 650; }
+.voice-field textarea { width: 100%; min-height: 112px; resize: vertical; }
+.voice-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.voice-toggle {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  border: 1px solid #0b958c; background: #effaf8; color: #08766f;
+  border-radius: 10px; padding: 10px 13px; font-weight: 700; line-height: 1.2;
+}
+.voice-toggle:hover:not(:disabled) { background: #d9f3ee; }
+.voice-toggle:focus-visible { outline: 3px solid #71c5bc; outline-offset: 2px; }
+.voice-toggle-active { background: #fff3f0; border-color: #d75649; color: #aa3028; }
+.voice-toggle-active:hover:not(:disabled) { background: #ffe5e0; }
+.voice-toggle:disabled { opacity: 0.55; cursor: not-allowed; }
+.voice-language-label { font-size: 12px; font-weight: 650; color: #567080; }
+.voice-language { width: auto !important; min-width: 145px; max-width: 190px; padding: 8px 10px !important; }
+.voice-status { font-size: 12px; color: #637b88; margin: 8px 0 0; line-height: 1.45; }
+.voice-interim { font-size: 13px; font-style: italic; color: #116b66; margin: 6px 0 0; }
+.voice-error { font-size: 13px; color: #b42318; margin: 6px 0 0; }
