@@ -31,5 +31,3 @@ __all__ = [
     "InvoiceItem",
     "Payment",
 ]
-
-from app.models.imaging_request import ImagingRequest

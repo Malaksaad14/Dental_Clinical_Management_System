@@ -275,15 +275,3 @@ tbody tr:hover { background: #fbfdfd; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto!important; transition: none!important; animation: none!important; }
 }
-
-/* Shared clinical module styling */
-.workflow-card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; margin:16px 0; }
-.workflow-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:24px; }
-.workflow-card label { display:block; margin:10px 0; }
-.workflow-card textarea,.workflow-card select { width:100%; }
-.workflow-card textarea { min-height:90px; }
-.content .bg-indigo-600,.content .bg-blue-600,.content .bg-emerald-600 { background:var(--teal); }
-.content .text-indigo-600,.content .text-blue-600 { color:var(--teal-dark); }
-.content .bg-indigo-50,.content .bg-blue-50 { background:#e8f6f4; }
-.content .border-indigo-200,.content .border-blue-200 { border-color:#c5e4e0; }
-.dashboard-bottom[hidden] { display:none; }

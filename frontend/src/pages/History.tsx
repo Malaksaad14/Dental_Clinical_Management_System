@@ -1,4 +1,3 @@
-import { ClinicalActions } from './StaffWorkspace'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router'
 import { api, messageFromError } from '../api/client'
@@ -17,13 +16,10 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
   const { user } = useAuth()
   const location = useLocation()
   const patientMode = user?.role === 'patient'
-  const clinical = user?.role === 'admin' || (user?.role === 'clinical_staff' && user.staff_type === 'dentist')
+  const clinical = user?.role === 'admin' || (user?.role === 'clinical_staff' && user.staff_type !== 'receptionist')
 
-  const [author,setAuthor]=useState('')
-  const [authors,setAuthors]=useState<{id:number;name:string}[]>([])
-  useEffect(()=>{if(user?.role==='admin') api.get('/catalog/dentists').then(r=>setAuthors(r.data)).catch(()=>{})},[user?.role])
   const [patients, setPatients] = useState<Patient[]>([])
-  const [patientId, setPatientId] = useState(new URLSearchParams(location.search).get('patient_id') || '')
+  const [patientId, setPatientId] = useState('')
   const [currentPatient, setCurrentPatient] = useState<Patient | null>(null)
   const [activeTab, setActiveTab] = useState<'chart' | 'plans' | 'prescriptions' | 'medical'>(initialTab || 'chart')
 
@@ -64,7 +60,6 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
       api.get<Patient[]>('/patients')
         .then((r) => {
           setPatients(r.data)
-          if (patientId) setCurrentPatient(r.data.find(p=>String(p.id)===patientId)||null)
           if (r.data.length > 0 && !patientId) {
             setPatientId(String(r.data[0].id))
             setCurrentPatient(r.data[0])
@@ -76,14 +71,13 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
 
   // Update current patient object when patientId changes in dropdown
   const handleSelectPatient = (idStr: string) => {
-    setTeethData({}); setPlans([]); setPrescriptions([]); setData(null); setFields(emptyHistory)
     setPatientId(idStr)
     const p = patients.find((x) => String(x.id) === idStr) || null
     setCurrentPatient(p)
   }
 
   // Load all patient clinical data
-  const loadClinicalData = async (targetId: string, active: () => boolean = () => true) => {
+  const loadClinicalData = async (targetId: string) => {
     if (!targetId) return
     setLoading(true)
     setError('')
@@ -95,8 +89,6 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
         api.get<HistoryData>(patientMode ? '/history/me' : `/history/patients/${targetId}`)
       ])
 
-      if (!active()) return
-      if ([chartRes,plansRes,rxRes,historyRes].some(r=>r.status==='rejected')) setError('Some clinical records could not be loaded.')
       if (chartRes.status === 'fulfilled') {
         setTeethData(chartRes.value.data.teeth || {})
       }
@@ -114,14 +106,14 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
     } catch (err) {
       setError(messageFromError(err))
     } finally {
-      if(active()) setLoading(false)
+      setLoading(false)
     }
   }
 
   useEffect(() => {
-    let active = true
-    if (patientId) loadClinicalData(patientId, () => active)
-    return () => { active = false }
+    if (patientId) {
+      loadClinicalData(patientId)
+    }
   }, [patientId, patientMode])
 
   // --- Handlers ---
@@ -145,7 +137,7 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
     try {
       await api.post('/api/v1/dental/tooth-records', {
         patient_id: Number(patientId),
-        recorded_by: user?.role==='admin' ? Number(author) : user?.id,
+        recorded_by: user?.id,
         ...record
       })
       showToast(`Tooth #${record.tooth_number} saved (${record.condition})!`)
@@ -177,7 +169,7 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
     try {
       await api.post('/api/v1/treatment-plans', {
         patient_id: Number(patientId),
-        dentist_id: user?.role==='admin' ? Number(author) : user?.id,
+        dentist_id: user?.id || 1,
         ...planData
       })
       showToast('Treatment plan created successfully!')
@@ -233,7 +225,7 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
     try {
       await api.post('/api/v1/prescriptions', {
         patient_id: Number(patientId),
-        dentist_id: user?.role==='admin' ? Number(author) : user?.id,
+        dentist_id: user?.id || 1,
         ...rxData
       })
       showToast('Prescription issued successfully!')
@@ -363,8 +355,6 @@ export default function History({ initialTab }: { initialTab?: 'chart' | 'plans'
       {error && <p className="error" role="alert">{error}</p>}
       {success && <p className="success" role="status">{success}</p>}
 
-      {user?.role==='admin' && <label>Clinical author<select value={author} onChange={e=>setAuthor(e.target.value)}><option value="">Select dentist</option>{authors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
-      {clinical && !patientMode && patientId && <ClinicalActions key={patientId} patientId={Number(patientId)} author={author}/>}
       {/* Navigation Tabs */}
       <div style={{ display: 'flex', borderBottom: '2px solid #e5edf0', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
         <button

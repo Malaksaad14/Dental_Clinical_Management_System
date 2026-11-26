@@ -1,4 +1,3 @@
-import { staffLinks } from '../auth/staffNavigation'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import Icon, { type IconName } from '../components/Icon'
@@ -33,7 +32,6 @@ export default function Dashboard() {
     : 'Everything you need to coordinate appointments, support patients, and keep your clinic moving.'
   const primaryAction = isPatient ? 'Book an appointment' : 'View appointments'
 
-  if(role === 'clinical_staff') return <div className="dashboard-page"><section className="panel"><h1>{user?.staff_type ? user.staff_type[0].toUpperCase()+user.staff_type.slice(1) : 'Staff'} workspace</h1><p>Welcome, {user?.first_name}</p></section><div className="card-grid dashboard-card-grid">{staffLinks(user?.staff_type).filter(x=>x.path).map(x=><Link key={x.path} to={root+x.path} className="feature-card"><span className="feature-icon tone-teal"><Icon name={x.icon}/></span><h3>{x.label}</h3><span className="feature-cta">Open <Icon name="arrow-right"/></span></Link>)}</div></div>
   return <div className="dashboard-page">
     <section className="dashboard-hero">
       <div className="hero-copy">
@@ -68,6 +66,6 @@ export default function Dashboard() {
         <span className="feature-cta">Open workspace <Icon name="arrow-right" size={16}/></span>
       </Link>)}
     </div>
-    <div hidden className="dashboard-bottom"><div><Icon name="shield" size={20}/><span><strong>Secure by design</strong><small>Access to clinical information is controlled by your account role.</small></span></div><Icon name="tooth" size={33} className="dashboard-bottom-mark"/></div>
+    <div className="dashboard-bottom"><div><Icon name="shield" size={20}/><span><strong>Secure by design</strong><small>Access to clinical information is controlled by your account role.</small></span></div><Icon name="tooth" size={33} className="dashboard-bottom-mark"/></div>
   </div>
 }

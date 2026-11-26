@@ -1,4 +1,3 @@
-from app.core.deps import staff_type_guard, check_staff
 from datetime import date
 from decimal import Decimal
 from typing import List, Optional
@@ -15,7 +14,7 @@ from app.services import billing_service as billing
 
 router = APIRouter(prefix="/invoices", tags=["Billing"])
 
-staff_only = staff_type_guard("receptionist")  # admins are always allowed by allow_roles
+staff_only = allow_roles("clinical_staff")  # admins are always allowed by allow_roles
 patient_only = allow_roles("patient")
 
 
@@ -29,7 +28,6 @@ def _load(db: Session, invoice_id: int) -> Optional[Invoice]:
 
 
 def _visible_invoice(db: Session, user: User, invoice_id: int) -> Invoice:
-    check_staff(db, user, "receptionist", patient=True)
     invoice = _load(db, invoice_id)
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")

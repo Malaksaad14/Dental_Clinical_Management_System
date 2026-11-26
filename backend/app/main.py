@@ -9,7 +9,6 @@ from sqlalchemy import text
 
 from app.db.database import engine
 from app.routers import (
-    workspace,
     appointments,
     auth,
     billing,
@@ -42,7 +41,6 @@ app.add_middleware(
 
 # Authentication & Base System Routers (Manar)
 app.include_router(auth.router)
-app.include_router(workspace.router)
 app.include_router(reports.router)
 app.include_router(patients.router)
 app.include_router(staff.router)

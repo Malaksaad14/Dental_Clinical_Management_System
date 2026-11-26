@@ -1,4 +1,3 @@
-from app.core.deps import staff_type_guard, check_staff
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Annotated
 from zoneinfo import ZoneInfo
@@ -109,7 +108,7 @@ def patient_book(body: BookingIn, user: Annotated[User, Depends(allow_roles("pat
 
 
 @router.post("", response_model=AppointmentOut, status_code=201)
-def staff_book(body: StaffBookingIn, user: Annotated[User, Depends(staff_type_guard("assistant"))], db: Annotated[Session, Depends(get_db)]):
+def staff_book(body: StaffBookingIn, user: Annotated[User, Depends(allow_roles("clinical_staff"))], db: Annotated[Session, Depends(get_db)]):
     return schedule(db, body.patient_id, body)
 
 @router.get("/me", response_model=list[AppointmentOut])
@@ -130,7 +129,7 @@ def my_appointments(
 
 
 @router.get("", response_model=list[AppointmentOut])
-def all_appointments(user: Annotated[User, Depends(staff_type_guard("dentist", "assistant"))], db: Annotated[Session, Depends(get_db)]):
+def all_appointments(user: Annotated[User, Depends(allow_roles("clinical_staff"))], db: Annotated[Session, Depends(get_db)]):
     appointments = db.scalars(select(Appointment).order_by(Appointment.start_time.desc()).limit(300)).all()
     return [appointment_out(db, a) for a in appointments]
 
@@ -182,7 +181,6 @@ def available_slots(
 
 @router.post("/{appointment_id}/cancel", response_model=AppointmentOut)
 def cancel_mine(appointment_id: int, user: Annotated[User, Depends(current_user)], db: Annotated[Session, Depends(get_db)]):
-    check_staff(db, user, "assistant", patient=True)
     ap = db.get(Appointment, appointment_id)
     if not ap:
         raise HTTPException(status_code=404, detail="Appointment not found")
@@ -198,7 +196,7 @@ def cancel_mine(appointment_id: int, user: Annotated[User, Depends(current_user)
 @router.patch("/{appointment_id}/status", response_model=AppointmentOut)
 def update_status(
     appointment_id: int, body: AppointmentStatusIn,
-    user: Annotated[User, Depends(staff_type_guard("dentist", "assistant"))],
+    user: Annotated[User, Depends(allow_roles("clinical_staff"))],
     db: Annotated[Session, Depends(get_db)],
 ):
     ap = db.get(Appointment, appointment_id)
@@ -219,7 +217,6 @@ def reschedule(
     user: Annotated[User, Depends(current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    check_staff(db, user, "assistant", patient=True)
     ap = db.get(Appointment, appointment_id)
     if not ap:
         raise HTTPException(status_code=404, detail="Appointment not found")
@@ -246,7 +243,7 @@ def reschedule(
 @router.get("/patient/{patient_id}", response_model=list[AppointmentOut])
 def patient_history(
     patient_id: int,
-    user: Annotated[User, Depends(staff_type_guard("dentist", "assistant"))],
+    user: Annotated[User, Depends(allow_roles("clinical_staff"))],
     db: Annotated[Session, Depends(get_db)],
     status: str | None = Query(None, pattern="^(scheduled|completed|cancelled|no_show)$"),
 ):

@@ -14,7 +14,7 @@ export default function InvoiceNew() {
   const root = user?.role === 'admin' ? '/admin' : '/staff'
   const [patients, setPatients] = useState<PatientOption[]>([])
   const [services, setServices] = useState<ServiceOption[]>([])
-  const [patientId, setPatientId] = useState(new URLSearchParams(window.location.search).get('patient_id') || '')
+  const [patientId, setPatientId] = useState('')
   const [search, setSearch] = useState('')
   const [items, setItems] = useState<ItemRow[]>([{ service_id: '', quantity: '1' }])
   const [error, setError] = useState('')
