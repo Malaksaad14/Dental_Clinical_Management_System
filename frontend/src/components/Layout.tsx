@@ -1,3 +1,4 @@
+import { staffLinks } from '../auth/staffNavigation'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
@@ -24,6 +25,7 @@ function userNavigation(role: string | undefined, staffType: string | null | und
     ]
   }
 
+  if (role === 'clinical_staff') return [{heading: 'WORKSPACE', items: staffLinks(staffType)}]
   const groups: NavigationGroup[] = [
     { heading: 'WORKSPACE', items: [
       { path: '', label: 'Overview', icon: 'dashboard' },
@@ -41,6 +43,7 @@ function userNavigation(role: string | undefined, staffType: string | null | und
       { path: '/staff', label: 'Staff directory', icon: 'doctor' },
       { path: '/staff/new', label: 'Add staff member', icon: 'user-plus' },
       { path: '/accounts', label: 'Manage accounts', icon: 'shield' },
+      { path: '/imaging', label: 'Imaging requests', icon: 'scan' },
       { path: '/reports', label: 'Reports', icon: 'dashboard' },
       { path: '/catalog', label: 'Clinic settings', icon: 'settings' },
     ] })
@@ -136,7 +139,7 @@ export default function Layout() {
         <div className="topbar-right"><div className="topbar-secure"><Icon name="shield" size={16}/> Secure portal</div><span className="topbar-divider"/><div className="topbar-avatar" aria-label={`${roleText} account`}>{initial}</div></div>
       </header>
       <main className="content" id="main-content"><Outlet /></main>
-      <footer className="app-footer"><span>© DentaCare EMR</span><span>Designed for connected dental care</span></footer>
+
     </div>
   </div>
 }

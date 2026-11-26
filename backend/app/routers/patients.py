@@ -1,3 +1,4 @@
+from app.core.deps import staff_type_guard, check_staff
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -27,7 +28,7 @@ def to_out(patient: Patient, email: str) -> PatientOut:
 @router.post("", status_code=201, response_model=PatientOut)
 def create_patient(
     body: PatientCreate,
-    user: Annotated[User, Depends(allow_roles("clinical_staff"))],
+    user: Annotated[User, Depends(staff_type_guard("receptionist"))],
     db: Annotated[Session, Depends(get_db)],
 ):
     # Public registration is intentionally not available.
@@ -51,7 +52,7 @@ def create_patient(
 
 @router.get("", response_model=list[PatientOut])
 def list_patients(
-    user: Annotated[User, Depends(allow_roles("clinical_staff"))],
+    user: Annotated[User, Depends(staff_type_guard("receptionist", "dentist"))],
     db: Annotated[Session, Depends(get_db)],
 ):
     rows = db.execute(select(Patient, User.email).join(User, Patient.user_id == User.id).order_by(Patient.id)).all()
@@ -88,7 +89,7 @@ def update_my_profile(
 @router.get("/{patient_id}", response_model=PatientOut)
 def get_patient(
     patient_id: int,
-    user: Annotated[User, Depends(allow_roles("clinical_staff"))],
+    user: Annotated[User, Depends(staff_type_guard("receptionist", "dentist"))],
     db: Annotated[Session, Depends(get_db)],
 ):
     patient = db.get(Patient, patient_id)
@@ -102,7 +103,7 @@ def get_patient(
 def update_patient(
     patient_id: int,
     changes: PatientUpdate,
-    user: Annotated[User, Depends(allow_roles("clinical_staff"))],
+    user: Annotated[User, Depends(staff_type_guard("receptionist"))],
     db: Annotated[Session, Depends(get_db)],
 ):
     patient = db.get(Patient, patient_id)

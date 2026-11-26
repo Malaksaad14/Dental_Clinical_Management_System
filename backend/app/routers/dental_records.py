@@ -1,3 +1,5 @@
+from app.core.deps import clinical_access, clinical_read, clinical_author
+from app.models import User
 from typing import List, Dict
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -14,20 +16,14 @@ from app.schemas.dental import (
 
 router = APIRouter(prefix="/dental", tags=["Dental Records & Charting"])
 
-@router.post("/tooth-records", response_model=ToothRecordOut, status_code=status.HTTP_201_CREATED)
-def record_tooth_condition(record_in: ToothRecordCreate, db: Session = Depends(get_db)):
+@router.post("/tooth-records", response_model=ToothRecordOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(clinical_access)])
+def record_tooth_condition(record_in: ToothRecordCreate, db: Session = Depends(get_db), user: User = Depends(clinical_access)):
     """Record a clinical finding or condition for a specific tooth."""
     patient = db.query(Patient).filter(Patient.id == record_in.patient_id).first()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    # Resolve recorded_by to a valid staff.id (accepting either staff.id or user.id)
-    staff = None
-    if record_in.recorded_by:
-        staff = db.query(Staff).filter((Staff.id == record_in.recorded_by) | (Staff.user_id == record_in.recorded_by)).first()
-    if not staff:
-        staff = db.query(Staff).first()
-    final_recorded_by = staff.id if staff else 1
+    final_recorded_by = clinical_author(db, user, record_in.recorded_by)
 
     record = ToothRecord(
         patient_id=record_in.patient_id,
@@ -43,7 +39,7 @@ def record_tooth_condition(record_in: ToothRecordCreate, db: Session = Depends(g
     return record
 
 
-@router.get("/patients/{patient_id}/chart", response_model=DentalChartOverview)
+@router.get("/patients/{patient_id}/chart", response_model=DentalChartOverview, dependencies=[Depends(clinical_read)])
 def get_patient_dental_chart(patient_id: int, db: Session = Depends(get_db)):
     """
     Get full dental chart for a patient, grouped by tooth number.
@@ -64,13 +60,13 @@ def get_patient_dental_chart(patient_id: int, db: Session = Depends(get_db)):
     return DentalChartOverview(patient_id=patient_id, teeth=teeth_map)
 
 
-@router.get("/patients/{patient_id}/tooth-records", response_model=List[ToothRecordOut])
+@router.get("/patients/{patient_id}/tooth-records", response_model=List[ToothRecordOut], dependencies=[Depends(clinical_read)])
 def get_tooth_records_history(patient_id: int, db: Session = Depends(get_db)):
     """Get complete chronological history of dental records for a patient."""
     return db.query(ToothRecord).filter(ToothRecord.patient_id == patient_id).order_by(ToothRecord.recorded_at.desc()).all()
 
 
-@router.delete("/tooth-records/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/tooth-records/{record_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(clinical_access)])
 def delete_tooth_record(record_id: int, db: Session = Depends(get_db)):
     """Delete a mistaken tooth record entry."""
     record = db.query(ToothRecord).filter(ToothRecord.id == record_id).first()
@@ -82,15 +78,15 @@ def delete_tooth_record(record_id: int, db: Session = Depends(get_db)):
 
 
 # --- Clinical Notes ---
-@router.post("/clinical-notes", response_model=ClinicalNoteOut, status_code=status.HTTP_201_CREATED)
-def create_clinical_note(note_in: ClinicalNoteCreate, db: Session = Depends(get_db)):
-    note = ClinicalNote(**note_in.model_dump())
+@router.post("/clinical-notes", response_model=ClinicalNoteOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(clinical_access)])
+def create_clinical_note(note_in: ClinicalNoteCreate, db: Session = Depends(get_db), user: User = Depends(clinical_access)):
+    note = ClinicalNote(**note_in.model_dump(exclude={"staff_id"}), staff_id=clinical_author(db, user, note_in.staff_id))
     db.add(note)
     db.commit()
     db.refresh(note)
     return note
 
 
-@router.get("/patients/{patient_id}/clinical-notes", response_model=List[ClinicalNoteOut])
+@router.get("/patients/{patient_id}/clinical-notes", response_model=List[ClinicalNoteOut], dependencies=[Depends(clinical_read)])
 def get_patient_clinical_notes(patient_id: int, db: Session = Depends(get_db)):
     return db.query(ClinicalNote).filter(ClinicalNote.patient_id == patient_id).order_by(ClinicalNote.created_at.desc()).all()

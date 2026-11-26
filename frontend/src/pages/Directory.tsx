@@ -7,6 +7,7 @@ import type { Patient, Staff, User } from '../types'
 export function PatientsDirectory() {
   const { user } = useAuth()
   const [rows,setRows] = useState<Patient[]>([])
+  const [search,setSearch] = useState('')
   const [error,setError] = useState('')
   const load = () => api.get<Patient[]>('/patients').then(r=>setRows(r.data)).catch(e=>setError(messageFromError(e)))
   useEffect(()=>{void load()},[])
@@ -19,9 +20,9 @@ export function PatientsDirectory() {
     catch(e){setError(messageFromError(e))}
   }
   return <div className="panel"><div className="page-heading"><h1>Patients</h1><p>Patient details are visible only to authorized clinic staff.</p></div>
-    <div className="action-row"><Link className="primary link-button" to={`${base}/patients/new`}>+ Create patient</Link></div>
+    <div className="action-row"><input aria-label="Search patients" placeholder="Search name, ID or phone" value={search} onChange={e=>setSearch(e.target.value)}/>{user?.staff_type!=='dentist' && <Link className="primary link-button" to={`${base}/patients/new`}>+ Create patient</Link>}</div>
     {error&&<p className="error" role="alert">{error}</p>}
-    <div className="table-wrap"><table><thead><tr><th>Patient ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Action</th></tr></thead><tbody>{rows.map(p=><tr key={p.id}><td>{p.id}</td><td>{p.first_name} {p.last_name}</td><td>{p.email}</td><td>{p.phone||'—'}</td><td><Link to={`${base}/appointments?patient_id=${p.id}`}>Book</Link> {user?.role==='admin'&&<button className="small secondary" onClick={()=>toggle(p)}>Deactivate</button>}</td></tr>)}</tbody></table></div>
+    <div className="table-wrap"><table><thead><tr><th>Patient ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Action</th></tr></thead><tbody>{rows.filter(p=>`${p.id} ${p.first_name} ${p.last_name} ${p.phone||''}`.toLowerCase().includes(search.toLowerCase())).map(p=><tr key={p.id}><td>{p.id}</td><td>{p.first_name} {p.last_name}</td><td>{p.email}</td><td>{p.phone||'—'}</td><td>{user?.staff_type==='dentist' || user?.role==='admin' ? <Link to={`${base}/history?patient_id=${p.id}`}>Open clinical file</Link> : <Link to={`${base}/billing/new?patient_id=${p.id}`}>Billing</Link>} {user?.role==='admin'&&<button className="small secondary" onClick={()=>toggle(p)}>Deactivate</button>}</td></tr>)}</tbody></table></div>
   </div>
 }
 

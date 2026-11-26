@@ -1,3 +1,5 @@
+from app.core.deps import clinical_access, clinical_read, clinical_author
+from app.models import User
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -15,17 +17,14 @@ from app.schemas.treatment_plan import (
 
 router = APIRouter(prefix="/treatment-plans", tags=["Treatment Plans"])
 
-@router.post("", response_model=TreatmentPlanOut, status_code=status.HTTP_201_CREATED)
-def create_treatment_plan(plan_in: TreatmentPlanCreate, db: Session = Depends(get_db)):
+@router.post("", response_model=TreatmentPlanOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(clinical_access)])
+def create_treatment_plan(plan_in: TreatmentPlanCreate, db: Session = Depends(get_db), user: User = Depends(clinical_access)):
     """Create a new treatment plan with optional initial procedure items."""
     patient = db.query(Patient).filter(Patient.id == plan_in.patient_id).first()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    staff = db.query(Staff).filter((Staff.id == plan_in.dentist_id) | (Staff.user_id == plan_in.dentist_id)).first()
-    if not staff:
-        staff = db.query(Staff).first()
-    final_dentist_id = staff.id if staff else 1
+    final_dentist_id = clinical_author(db, user, plan_in.dentist_id)
 
     new_plan = TreatmentPlan(
         patient_id=plan_in.patient_id,
@@ -57,7 +56,7 @@ def create_treatment_plan(plan_in: TreatmentPlanCreate, db: Session = Depends(ge
     return new_plan
 
 
-@router.get("/patients/{patient_id}", response_model=List[TreatmentPlanOut])
+@router.get("/patients/{patient_id}", response_model=List[TreatmentPlanOut], dependencies=[Depends(clinical_read)])
 def get_patient_treatment_plans(patient_id: int, db: Session = Depends(get_db)):
     """List all treatment plans for a specific patient."""
     plans = db.query(TreatmentPlan).options(
@@ -66,7 +65,7 @@ def get_patient_treatment_plans(patient_id: int, db: Session = Depends(get_db)):
     return plans
 
 
-@router.get("/{plan_id}", response_model=TreatmentPlanOut)
+@router.get("/{plan_id}", response_model=TreatmentPlanOut, dependencies=[Depends(clinical_access)])
 def get_treatment_plan_by_id(plan_id: int, db: Session = Depends(get_db)):
     """Get single treatment plan details with all items."""
     plan = db.query(TreatmentPlan).options(
@@ -77,7 +76,7 @@ def get_treatment_plan_by_id(plan_id: int, db: Session = Depends(get_db)):
     return plan
 
 
-@router.patch("/{plan_id}", response_model=TreatmentPlanOut)
+@router.patch("/{plan_id}", response_model=TreatmentPlanOut, dependencies=[Depends(clinical_access)])
 def update_treatment_plan(plan_id: int, plan_update: TreatmentPlanUpdate, db: Session = Depends(get_db)):
     """Update title, status (proposed, in_progress, completed), or notes of a plan."""
     plan = db.query(TreatmentPlan).filter(TreatmentPlan.id == plan_id).first()
@@ -94,7 +93,7 @@ def update_treatment_plan(plan_id: int, plan_update: TreatmentPlanUpdate, db: Se
 
 
 # --- Plan Items (Procedures) ---
-@router.post("/{plan_id}/items", response_model=TreatmentPlanItemOut, status_code=status.HTTP_201_CREATED)
+@router.post("/{plan_id}/items", response_model=TreatmentPlanItemOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(clinical_access)])
 def add_item_to_plan(plan_id: int, item_in: TreatmentPlanItemCreate, db: Session = Depends(get_db)):
     """Add a new procedure to an existing treatment plan."""
     plan = db.query(TreatmentPlan).filter(TreatmentPlan.id == plan_id).first()
@@ -119,7 +118,7 @@ def add_item_to_plan(plan_id: int, item_in: TreatmentPlanItemCreate, db: Session
     return item
 
 
-@router.patch("/items/{item_id}", response_model=TreatmentPlanItemOut)
+@router.patch("/items/{item_id}", response_model=TreatmentPlanItemOut, dependencies=[Depends(clinical_access)])
 def update_plan_item_status(item_id: int, item_update: TreatmentPlanItemUpdate, db: Session = Depends(get_db)):
     """Update procedure status (e.g. mark as completed), date, or notes."""
     item = db.query(TreatmentPlanItem).filter(TreatmentPlanItem.id == item_id).first()
@@ -147,7 +146,7 @@ def update_plan_item_status(item_id: int, item_update: TreatmentPlanItemUpdate, 
     return item
 
 
-@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(clinical_access)])
 def delete_plan_item(item_id: int, db: Session = Depends(get_db)):
     """Remove a procedure from a plan."""
     item = db.query(TreatmentPlanItem).filter(TreatmentPlanItem.id == item_id).first()
@@ -158,7 +157,7 @@ def delete_plan_item(item_id: int, db: Session = Depends(get_db)):
     return None
 
 
-@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(clinical_access)])
 def delete_treatment_plan(plan_id: int, db: Session = Depends(get_db)):
     """Delete a treatment plan and all its procedures."""
     plan = db.query(TreatmentPlan).filter(TreatmentPlan.id == plan_id).first()
